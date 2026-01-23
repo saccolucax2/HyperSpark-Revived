@@ -9,11 +9,26 @@
 
 The current version implements algorithms for **Permutation Flowshop problems (PFSP)**, solving instances using parallel genetic algorithms.
 
+![CI Status](https://github.com/saccolucax2/HyperSpark-Revived/actions/workflows/docker-build.yml/badge.svg)
 ---
 
 ## ⚡️ Quick Start (Docker)
+(Pre-built Docker Image)
 The most reliable way to run this project is via Docker, which isolates the legacy dependencies (Java 8, Scala 2.11) from your host machine.
+Thanks to GitHub Actions, you don't need to build the project manually. The latest Docker image is automatically built and stored in the GitHub Container Registry.
 
+### Run Immediately
+Execute the Genetic Algorithm on a test instance (downloads the image automatically):
+```bash
+docker run --rm ghcr.io/saccolucax2/hyperspark-revived:latest
+```
+
+**Expected Output:** You should see Spark logs followed by the scientific result (e.g., Best Solution found: ... Makespan: 3882).
+
+## 🛠 Manual Build (Local Environment)
+If you want to modify the code or build locally, choose one of the following methods:
+### Option A: Local Docker Build (Recommended)
+You only need Docker installed. Java 8 is handled inside the container.
 ### 1. Build Image
 Compiles the code and creates the Docker image (includes Maven Build & Test phases):
 ```bash
@@ -24,11 +39,9 @@ Starts a local Spark cluster and executes the Genetic Algorithm on a test instan
 ```bash
 docker run --rm hyperspark-v2
 ```
-**Expected Output:** You should see Spark logs followed by the scientific result (e.g., Best Solution found: ... Makespan: 3882).
-
-### 🛠 Manual Build (Local Environment)
-If you wish to develop or run this without Docker, you must configure your environment with these exact versions to avoid conflicts:
-- JDK: 1.8 (Mandatory - eclipse-temurin:8-jre recommended)
+### Option B: Native Maven Build
+If you want to run ```mvn``` directly on your host machine, you must configure your environment with these exact versions:
+- JDK: 1.8 (Mandatory - ```eclipse-temurin:8-jre``` recommended)
 - Scala: 2.11.11
 - Apache Spark: 2.4.7 (Core)
 - Maven: 3.x
@@ -41,7 +54,7 @@ mvn clean package
 ### Direct Execution of the Jar
 java -jar target/hyperspark-1.0-SNAPSHOT-allinone.jar
 ```
-### 🔐 Fixed Dependencies (Gold Standard)
+## 🔐 Fixed Dependencies (Gold Standard)
 During the restoration process, the following test dependencies were frozen to ensure compatibility with Scala 2.11:
 - scalatest: 2.2.6
 - scalacheck: 1.12.5
