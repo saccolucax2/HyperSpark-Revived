@@ -10,7 +10,7 @@ import pfsp.algorithms.GAAlgorithm
  * @author Nemanja
  */
 object LocalApp {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val problem = PfsProblem.fromResources("inst_ta054.txt")
     val makeAlgo = () => new GAAlgorithm()
     val numOfAlgorithms = 4
@@ -28,7 +28,7 @@ object LocalApp {
     .setNDefaultInitialSeeds(numOfAlgorithms)
     .setNumberOfIterations(numOfIterations)
     .setStoppingCondition(stopCond)
-    
+
     val solution = Framework.run(conf)
     println(solution)
   }

@@ -2,19 +2,11 @@ package problem
 
 import org.scalatest.Assertions
 import org.junit.Test
-import org.junit._
-import Assert._
-import it.polimi.hyperh.problem.Problem
-import it.polimi.hyperh.solution.Solution
-import it.polimi.hyperh.solution.EvaluatedSolution
 import pfsp.algorithms.IGAlgorithm
 import pfsp.algorithms.NEHAlgorithm
 import pfsp.algorithms.GAAlgorithm
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import pfsp.algorithms.SAAlgorithm
 import pfsp.algorithms.TSAlgorithm
-import util.ConsolePrinter
 import pfsp.algorithms.TSABAlgorithm
 import pfsp.algorithms.MMASAlgorithm
 import util.Performance
@@ -28,9 +20,9 @@ import pfsp.algorithms.ISAAlgorithm
 
 @Test
 class AlgorithmsTest extends Assertions {
-  @Test def testAlgorithms() {
+  @Test def testAlgorithms(): Unit = {
     //uncomment to use testing
-    /*
+
     val i = "008"  //taillard's PFSP instance number "i"
     val problem = PfsProblem.fromResources("inst_ta"+i+".txt")
     
@@ -115,10 +107,9 @@ class AlgorithmsTest extends Assertions {
     val hgaEvSolution = hgaAlgorithm.evaluate(problem, stopCond).asInstanceOf[PfsEvaluatedSolution]
     val hgaRPD = Performance.RPD(hgaEvSolution, bestFoundSol)
     println("HGA: " + hgaRPD)
-    */
-    assert(true)
-    
-    
+
+    assert(1==1, "All tests passed!")
+
   }
 
 }
