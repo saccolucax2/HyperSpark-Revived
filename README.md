@@ -27,18 +27,22 @@ docker run --rm ghcr.io/saccolucax2/hyperspark-revived:latest
 
 ## 🛠 Manual Build (Local Environment)
 If you want to modify the code or build locally, choose one of the following methods:
+
 ### Option A: Local Docker Build (Recommended)
 You only need Docker installed. Java 8 is handled inside the container.
+
 ### 1. Build Image
 Compiles the code and creates the Docker image (includes Maven Build & Test phases):
 ```bash
 docker build -t hyperspark-v2 .
 ```
+
 ### 2. Run Algorithm
 Starts a local Spark cluster and executes the Genetic Algorithm on a test instance (e.g., ta008):
 ```bash
 docker run --rm hyperspark-v2
 ```
+
 ### Option B: Native Maven Build
 If you want to run ```mvn``` directly on your host machine, you must configure your environment with these exact versions:
 - JDK: 1.8 (Mandatory - ```eclipse-temurin:8-jre``` recommended)
@@ -54,6 +58,24 @@ mvn clean package
 ### Direct Execution of the Jar
 java -jar target/hyperspark-1.0-SNAPSHOT-allinone.jar
 ```
+
+## 🧪 Testing & Code Quality
+To ensure code stability, the project includes automated testing and coverage analysis.
+
+### Run Unit Tests
+Execute all tests using Maven:
+```bash
+mvn test
+```
+
+### Check Code Coverage (Scoverage)
+We use Scoverage to measure how much code is tested. To generate the report:
+```bash
+mvn scoverage:report
+```
+- **Local View:** Open the generated file target/site/scoverage/index.html in your browser to see the interactive graph.
+- **CI/CD:** On GitHub Actions, this report is automatically generated and available for download as an Artifact after every build.
+
 ## 🔐 Fixed Dependencies (Gold Standard)
 During the restoration process, the following test dependencies were frozen to ensure compatibility with Scala 2.11:
 - scalatest: 2.2.6
