@@ -25,10 +25,10 @@ object DelphiProblemParser extends RegexParsers {
   def entry: Parser[Int] = number ~ number ^^ {case x ~ y => y}
   def row: Parser[Array[Int]] = entry.+ <~ "x" ^^ {_.toArray}
   def matrix: Parser[Array[Array[Int]]] = row.+ ^^ {_.toArray}
-  def getColumn(ind: Int, m: Array[Array[Int]]): Array[Int] = m.map{_(ind)}
-  def transpose(m: Array[Array[Int]]): Array[Array[Int]] = {
+  private def getColumn(ind: Int, m: Array[Array[Int]]): Array[Int] = m.map{_(ind)}
+  private def transpose(m: Array[Array[Int]]): Array[Array[Int]] = {
    var transposed: Array[Array[Int]] = Array()
-   val numRows = m(0).size//5
+   val numRows = m(0).length //5
    for(i <- 0 until numRows)
      transposed :+= getColumn(i, m)
    transposed

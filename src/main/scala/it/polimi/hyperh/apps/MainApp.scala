@@ -4,7 +4,7 @@ package it.polimi.hyperh.apps
  * @author Nemanja
  */
 class MainApp {
-  def run() {
+  def run(): Unit = {
     //new TesterApp().run()
     //new YarnClusterApp().run()
     new CooperativeSame().run()
@@ -13,7 +13,7 @@ class MainApp {
 //companion object which provides an entrypoint to the environment 
 //(when it is not specified, e.g. by using spark-submit --class)
 object MainApp {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
      new MainApp().run()
   }
 }

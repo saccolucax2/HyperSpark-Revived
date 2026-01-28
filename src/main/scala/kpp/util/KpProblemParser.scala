@@ -3,17 +3,24 @@ package kpp.util
 import scala.io.Source
 import kpp.problem.KpProblem
 
-object KpProblemParser{
+object KpProblemParser {
   def apply(fileName: String): KpProblem = {
     val path = "src/main/resources/" + fileName
-    // Read capacity parameter
-    val capacityString = Source.fromFile(path).getLines.find(_ => true).toArray
-    val capacity = capacityString.map(x => x.toInt)
-    // Read profits and weights
-    val values = Source.fromFile(path).getLines().drop(1).map(_.split(" ").map(x => x.toInt)).toArray
-    val profits = values.map(x => x(0))
-    val weights = values.map(x => x(1))
-    // New problem instance
-    new KpProblem(capacity(0), profits, weights)
+    val source = Source.fromFile(path)
+    try {
+      val lines = source.getLines().toList
+      if (lines.isEmpty) throw new Exception("Empty file")
+      val capacity = lines.head.trim.toInt
+      val itemLines = lines.tail
+      val items = itemLines.map { line =>
+        val parts = line.split("\\s+").map(_.toInt)
+        (parts(0), parts(1))
+      }
+      val (profits, weights) = items.unzip
+      new KpProblem(capacity, profits.toArray, weights.toArray)
+
+    } finally {
+      source.close()
+    }
   }
 }

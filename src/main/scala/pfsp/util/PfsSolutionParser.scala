@@ -3,11 +3,12 @@ package pfsp.util
 import scala.util.parsing.combinator.RegexParsers
 import pfsp.solution.PfsSolution
 import pfsp.solution.PfsEvaluatedSolution
+import scala.util.matching.Regex
 
 object PfsSolutionParser extends RegexParsers {
 
 	def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
-	def identifier  = """[_\p{L}][_\p{L}\p{Nd}]*""".r	
+	def identifier: Regex = """[_\p{L}][_\p{L}\p{Nd}]*""".r
 	def row: Parser[Array[Int]] = number.+ ^^ {_.toArray}
 	def solution: Parser[PfsSolution] = identifier ~> number ~ row ^^ {
 	  case ms ~ r => new PfsSolution(r)
@@ -22,7 +23,7 @@ object PfsSolutionParser extends RegexParsers {
 object PfsEvaluatedSolutionParser extends RegexParsers {
 
 	def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
-	def identifier  = """[_\p{L}][_\p{L}\p{Nd}]*""".r	
+	def identifier: Regex = """[_\p{L}][_\p{L}\p{Nd}]*""".r
 	def row: Parser[Array[Int]] = number.+ ^^ {_.toArray}
 	def solution: Parser[PfsEvaluatedSolution] = identifier ~> number ~ row ^^ {
 	  case ms ~ r => new PfsEvaluatedSolution(ms,r)

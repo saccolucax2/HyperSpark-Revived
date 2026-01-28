@@ -1,14 +1,8 @@
 package it.polimi.hyperh.experiments
 
-import it.polimi.hyperh.problem.Problem
-import it.polimi.hyperh.solution.EvaluatedSolution
-import it.polimi.hyperh.spark.Framework
 import it.polimi.hyperh.spark.FrameworkConf
 import pfsp.problem.PfsProblem
 import pfsp.algorithms.HGAAlgorithm
-import util.Performance
-import util.CustomLogger
-import pfsp.util.PermutationUtility
 import util.CurrentTime
 import it.polimi.hyperh.spark.TimeExpired
 
@@ -17,7 +11,7 @@ import it.polimi.hyperh.spark.TimeExpired
  */
 class Experiment1(instance: Int, parallelism: Int) extends Experiment(instance, parallelism) {
   
-   override def run() {
+   override def run(): Unit = {
     val runs = 1
     val problem = PfsProblem.fromResources(filename("inst_ta", instance, ".txt"))
     val algorithm = new HGAAlgorithm(problem)
@@ -39,7 +33,7 @@ class Experiment1(instance: Int, parallelism: Int) extends Experiment(instance, 
       .setNDefaultInitialSeeds(numOfAlgorithms)
       .setNumberOfIterations(1)
       .setStoppingCondition(stopCond)
-      val resultStr = testInstance(instance, runs, conf, true)
+      val resultStr = testInstance(instance, runs, conf, solutionPresent = true)
     logger.printInfo(resultStr)
     val logEndTime = CurrentTime()
     val strEnd = "End time\t\t"+logEndTime+"\n"
@@ -50,7 +44,7 @@ class Experiment1(instance: Int, parallelism: Int) extends Experiment(instance, 
   }
 }
 object Experiment1 {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     var instance = 1
     var parallelism = 1
     //parse the args

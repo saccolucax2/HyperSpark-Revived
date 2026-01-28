@@ -20,7 +20,7 @@ class NrProblem(val numCustomers: Int,
 
   def calculateWeights(customerIndices: List[Int]): Double = {customerIndices.map(customerWeights).sum}
 
-  def findParents(requirements: List[Int], numLevels: Int): List[Int] = {
+  private def findParents(requirements: List[Int], numLevels: Int): List[Int] = {
     var allRequirements: List[Int] = requirements
     var requirementsArray = requirements.toArray
     for (_ <- 2 to numLevels){  // for each level extract the parents of the requirements.
@@ -39,7 +39,7 @@ class NrProblem(val numCustomers: Int,
     allRequirements.toArray.map(nodeCosts).sum
   }
 
-  def calculateFitness(s: NrSolution): Int = {
+  private def calculateFitness(s: NrSolution): Int = {
     val solution = s.toList
     val customerIndices = solution.zipWithIndex.filter(pair => pair._1 == 1).map(pair => pair._2)
     val weightSum: Double = calculateWeights(customerIndices)

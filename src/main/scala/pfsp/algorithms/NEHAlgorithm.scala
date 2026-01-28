@@ -1,8 +1,6 @@
 package pfsp.algorithms
 
 import Array._
-import it.polimi.hyperh._
-import it.polimi.hyperh.types.Types._
 import it.polimi.hyperh.solution.EvaluatedSolution
 import it.polimi.hyperh.problem.Problem
 import it.polimi.hyperh.solution.Solution
@@ -14,19 +12,16 @@ import it.polimi.hyperh.spark.StoppingCondition
 /**
  * @author Nemanja
  */
-/*class NEHAlgorithm() extends Serializable {
-  
-}*/
 
 //Problem Factory
-class NEHAlgorithm() extends Algorithm {
+class NEHAlgorithm extends Algorithm {
   
-  def constructSolution(p:PfsProblem, partialSolution: List[Int], remainingJobs: List[Int]): EvaluatedSolution = {
+  private def constructSolution(p:PfsProblem, partialSolution: List[Int], remainingJobs: List[Int]): EvaluatedSolution = {
       //STEP 2.2 get best permutation of two jobs
       var bestPermutation = PermutationUtility.getBestPermutation(PermutationUtility.generatePermutations(partialSolution), p)
       //STEP 3 of NEH algorithm
       //from 0 until numOfRemainingJobs (in NEH this is marked as for k=3 to numOfJobs)
-      for (i <- 0 until remainingJobs.size) {
+      for (i <- remainingJobs.indices) {
         val genPermutations = PermutationUtility.generateInserts(bestPermutation.solution.toList, remainingJobs(i))
         bestPermutation = PermutationUtility.getBestPermutation(genPermutations, p)
         //println(bestPermutation)
@@ -39,7 +34,7 @@ class NEHAlgorithm() extends Algorithm {
     //STEP 1: sort jobs in decreasing order, STEP 2.1.take best two,
     val sortedList = p.sortJobsDecreasing(pairs).map(x => x._1).toList
     val twoJobs = sortedList.take(2) //> twoJobs  : List[Int] = List(1, 2)
-    val remainingJobs = sortedList.filterNot(twoJobs.toSet).toList //> remainingJobs  : List[Int] = List(3, 4, 5)
+    val remainingJobs = sortedList.filterNot(twoJobs.toSet) //> remainingJobs  : List[Int] = List(3, 4, 5)
     
     val finalSolution = constructSolution(p, twoJobs, remainingJobs) //> mySolution  : solution.EvaluatedSolution = EvaluatedSolution(58,[I@2353b3e6| )
     finalSolution

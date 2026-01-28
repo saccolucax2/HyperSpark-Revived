@@ -1,6 +1,6 @@
 package pfsp.parallel
 
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.ClassTag
 import it.polimi.hyperh.problem.Problem
 import it.polimi.hyperh.solution.EvaluatedSolution
 import it.polimi.hyperh.spark.StoppingCondition
@@ -16,6 +16,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 
+import scala.annotation.tailrec
+
 /**
  * @author Nemanja
  */
@@ -27,7 +29,7 @@ class PHGA(
     coolingRate: Double,
     seedOption: Option[PfsSolution]
     ) extends HGAAlgorithm(p,popSize,prob,coolingRate,seedOption) {
-  val subPopSize = popSize / numOfSplits
+  val subPopSize: Int = popSize / numOfSplits
   /**
    * A secondary constructor.
    */
@@ -46,19 +48,19 @@ class PHGA(
     //INITIALIZE POPULATION
     val individuals = initSeedPlusRandom(p, popSize)
     //assign enumeration id to each of individuals
-    val keyValuesArr = for(id<-0 until individuals.size) yield (id, individuals(id).asInstanceOf[PfsEvaluatedSolution])
+    val keyValuesArr = for(id<- individuals.indices) yield (id, individuals(id))
     val rdd = PHGA.createRDD(keyValuesArr)
     //map each id into operation number, e.g. 0,1,2 or 3rd operation as key, value is just copied
     var populationRDD = rdd.map(tupple => (tupple._1 / subPopSize, tupple._2))
     //create ordering for performing min and max on rdd
-    implicit val orderingPfsEv = new Ordering[PfsEvaluatedSolution] {
-      override def compare(a: PfsEvaluatedSolution, b: PfsEvaluatedSolution) = a.compare(b)
+    implicit val orderingPfsEv: Ordering[PfsEvaluatedSolution] = new Ordering[PfsEvaluatedSolution] {
+      override def compare(a: PfsEvaluatedSolution, b: PfsEvaluatedSolution): Int = a.compare(b)
     }
-    implicit val orderingTupples = new Ordering[(Int, PfsEvaluatedSolution)] {
-      override def compare(a: (Int, PfsEvaluatedSolution), b: (Int, PfsEvaluatedSolution)) = a._2.compare(b._2)
+    implicit val orderingTupples: Ordering[(Int, PfsEvaluatedSolution)] = new Ordering[(Int, PfsEvaluatedSolution)] {
+      override def compare(a: (Int, PfsEvaluatedSolution), b: (Int, PfsEvaluatedSolution)): Int = a._2.compare(b._2)
     }
     var bestSolution = populationRDD.min()(orderingTupples)._2
-    var worstSolution = populationRDD.max()(orderingTupples)._2
+    val worstSolution = populationRDD.max()(orderingTupples)._2
     val delta = worstSolution.value - bestSolution.value
     temperatureUB = -delta / scala.math.log(prob)
     
@@ -90,16 +92,16 @@ class PHGA(
     //RETURN BEST SOLUTION
     bestSolution
   }
-  def getElementAt(rdd: RDD[(Int, PfsEvaluatedSolution)], index: Int): (Int, PfsEvaluatedSolution) = {
+  private def getElementAt(rdd: RDD[(Int, PfsEvaluatedSolution)], index: Int): (Int, PfsEvaluatedSolution) = {
     //rdd = (a,b,c)
     val withIndex = rdd.zipWithIndex // ((a,0),(b,1),(c,2))
     val indexKey = withIndex.map{case (k,v) => (v,k)}  //((0,a),(1,b),(2,c))
-    val el = indexKey.lookup(index)(0) // Array(b)
+    val el = indexKey.lookup(index).head // Array(b)
     el
   }
   def crossover(p: PfsProblem, subpopulation: RDD[(Int, PfsEvaluatedSolution)], bestSolution: PfsEvaluatedSolution,
       operator: (List[Int], List[Int]) => (List[Int], List[Int]), stopCond: StoppingCondition): RDD[(Int,PfsEvaluatedSolution)] = {
-    var newPopulation = subpopulation
+    val newPopulation = subpopulation
     val Ps: Int = subpopulation.count().toInt
     //parent1 uses bestSolution
     val parent1 = bestSolution
@@ -120,7 +122,8 @@ class PHGA(
     var evOldPopulation = population
     var temperature = temperatureUB
     //function that repeats metropolis sample n times on one element at current temperature
-    def metropolisOneElement(el: (Int, PfsEvaluatedSolution),locBest: (Int, PfsEvaluatedSolution), runs: Int): (Int, PfsEvaluatedSolution) = {
+    @tailrec
+    def metropolisOneElement(el: (Int, PfsEvaluatedSolution), locBest: (Int, PfsEvaluatedSolution), runs: Int): (Int, PfsEvaluatedSolution) = {
       if((runs < p.numOfJobs) && stopCond.isNotSatisfied()) {
         var newSolution: List[Int] = List()
         var updateEl = el
@@ -169,8 +172,8 @@ class PHGA(
 }
 object PHGA {
   val sc = new SparkContext(new SparkConf().setAppName("PHGA").setMaster("local[*]"))
-  def createRDD[T: ClassTag](seq: Seq[T]): RDD[T] = { sc.parallelize(seq) }
-  def main(args: Array[String]) {
+  private def createRDD[T: ClassTag](seq: Seq[T]): RDD[T] = { sc.parallelize(seq) }
+  def main(args: Array[String]): Unit = {
     val instance = "050"
     val problem = PfsProblem.fromResources("inst_ta"+instance+".txt")
     val n = problem.numOfJobs
@@ -185,7 +188,7 @@ object PHGA {
     val logname = CurrentTime()
     logger.printInfo("Start time\t\t"+logname+"\n")
     logger.setFormat(List("instance","n","m","algorithmName","totalTime(s)","makespan","best","rpd","mode"))
-    val format = logger.getFormatString()
+    val format = logger.getFormatString
     logger.printInfo(format)
     val resultStr = logger.getValuesString(List(
         "inst_ta"+instance,

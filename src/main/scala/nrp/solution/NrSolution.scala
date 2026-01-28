@@ -3,7 +3,6 @@ package nrp.solution
 import it.polimi.hyperh.solution.Solution
 import nrp.util.NrSolutionParser
 
-
 /**
  * A solution is represented as a set of customers, whose requirements are fulfilled.
  * s = [0, 1, 0, 0, 1, 0, 1, 0, 1]
@@ -23,7 +22,3 @@ object NrSolution{
   def apply(solution: Array[Int]) = new NrSolution(solution)
   def apply(solution: List[Int]) = new NrSolution(solution.toArray)
 }
-
-
-
-

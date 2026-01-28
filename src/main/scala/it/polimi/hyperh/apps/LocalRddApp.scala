@@ -8,7 +8,7 @@ import scala.util.Random
  * @author Nemanja
  */
 class LocalRddApp {
-  def run() {
+  def run(): Unit = {
     val arr = (for(i<-0 to 99) yield (i, Random.nextDouble)).toArray
     val sconf = new SparkConf().setAppName("test").setMaster("local[*]")
     val sc = new SparkContext(sconf)
@@ -26,7 +26,7 @@ class LocalRddApp {
   }
 }
 object LocalRddApp {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     new LocalRddApp().run()
   }
 }

@@ -1,7 +1,6 @@
 package pfsp.algorithms
 
 import it.polimi.hyperh.problem.Problem
-import it.polimi.hyperh.solution.Solution
 import it.polimi.hyperh.solution.EvaluatedSolution
 import it.polimi.hyperh.algorithms.Algorithm
 import it.polimi.hyperh.spark.StoppingCondition
@@ -11,6 +10,8 @@ import pfsp.problem.PfsProblem
 import pfsp.solution.PfsEvaluatedSolution
 import pfsp.solution.PfsSolution
 import pfsp.solution.NaivePfsEvaluatedSolution
+
+import scala.annotation.tailrec
 
 /**
  * @author Nemanja
@@ -51,7 +52,7 @@ class SAAlgorithm(p: PfsProblem) extends Algorithm {
   }
   override def evaluate(problem: Problem): EvaluatedSolution = {
     val p = problem.asInstanceOf[PfsProblem]
-    val timeLimit = p.getExecutionTime()
+    val timeLimit = p.getExecutionTime
     val stopCond = new TimeExpired(timeLimit)
     evaluate(p, stopCond)
   }
@@ -60,13 +61,14 @@ class SAAlgorithm(p: PfsProblem) extends Algorithm {
     def cost(solution: List[Int]) = p.evaluate(PfsSolution(solution)).asInstanceOf[PfsEvaluatedSolution]
     def neighbour(sol: List[Int]): List[Int] = NeighbourhoodOperator(random).SHIFT(sol)//forward or backward shift at random
     def acceptanceProbability(delta: Int, temperature: Double): Double = {
-      scala.math.pow(2.71828,(-delta/temperature))
+      scala.math.pow(2.71828,-delta/temperature)
     }
      
     var evOldSolution = NaivePfsEvaluatedSolution(p)
     val stop = stopCond.asInstanceOf[TimeExpired].initialiseLimit()
+    @tailrec
     def loop(old: PfsEvaluatedSolution, temp: Double, iter: Int): PfsEvaluatedSolution = {
-      if((temp > temperatureLB) && stop.isNotSatisfied()) {
+      if((temp > temperatureLB) && stop.isNotSatisfied) {
         if(iter == 1) {
           //initialize solution
           evOldSolution = initialSolution(p)

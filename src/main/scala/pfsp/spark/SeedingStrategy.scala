@@ -12,12 +12,12 @@ class SlidingWindow(windowSize: Int) extends SeedingStrategy {
   override def divide(seedOption: Option[Solution], N: Int): Array[Option[Solution]] = {
     val seed = seedOption.getOrElse(throw new RuntimeException("SeedingStrategySlidingWindow: None value for Option[Solution]"))
     val perm = seed.asInstanceOf[PfsEvaluatedSolution].permutation
-    if(N+windowSize > perm.size) {
+    if(N+windowSize > perm.length) {
       throw new RuntimeException("SeedingStrategySlidingWindow: can't slide that much. Reason: N+windowSize  > solution.permutation.size. Try to decrease the windowSize parameter")
     }
     var array: Array[Option[Solution]] = Array()
     for (i <- 0 until N) {
-      val window = perm.drop(i).take(windowSize)
+      val window = perm.slice(i, i + windowSize)
       val allowed = perm.filterNot(window.toSet)
       val arrayTake = Random.shuffle(allowed.toList).toArray
       val leftPart = arrayTake.take(i)
@@ -42,7 +42,7 @@ class FixedWindow(windowSize: Int) extends SeedingStrategy {
     var array: Array[Option[Solution]] = Array()
     for (i <- 0 until N) {
       val windowIndex = Random.nextInt(perm.length-windowSize) //[0:perm.length-1-windowSize]
-      val window=perm.drop(windowIndex).take(windowSize)//elements until windIndex
+      val window= perm.slice(windowIndex, windowIndex + windowSize) //elements until windIndex
       val allowed=perm.filterNot(window.toSet)
       val arrayTake = Random.shuffle(allowed.toList).toArray
       val leftPart = arrayTake.take(windowIndex)

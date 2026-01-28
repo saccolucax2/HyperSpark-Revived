@@ -1,6 +1,6 @@
 package it.polimi.hyperh.apps
 
-import it.polimi.hyperh.spark.{Framework, FrameworkConf, SameSeeds, TimeExpired}
+import it.polimi.hyperh.spark.{Framework, FrameworkConf, TimeExpired}
 import nrp.problem.NrProblem
 import nrp.algorithms.SAAlgorithm
 import it.polimi.hyperh.spark.MapReduceHandlerMaximization

@@ -10,40 +10,43 @@ import scala.util.Random
 import scala.annotation.tailrec
 import kpp.util.Moves
 
-class SAAlgorithm() extends Algorithm {
+class SAAlgorithm extends Algorithm {
   // Define default values
   var initialTemperature: Double = 100.0
   var minTemperature: Double = 0.001
   var beta: Double = 0.00000005
   val defaultTimeLimit: Int = 300000
+
   // Secondary constructors
-  def this(initT: Double, minT: Double, b: Double)  {
+  def this(initT: Double, minT: Double, b: Double) {
     this()
     initialTemperature = initT
     minTemperature = minT
     beta = b
   }
-  def this(initT: Double, minT: Double, b: Double, seedOption: Option[KpSolution])  {
+
+  def this(initT: Double, minT: Double, b: Double, seedOption: Option[KpSolution]) {
     this()
     initialTemperature = initT
     minTemperature = minT
     beta = b
     seed = seedOption
   }
+
   def this(seedOption: Option[KpSolution]) {
     this()
     seed = seedOption
   }
 
   def randomSolution(numItems: Int): List[Int] = {
-    val solution = Array.fill(numItems)(0)  // solution with only zeros
-    val randomIndices = Seq.fill(1)(Random.nextInt(numItems))  // initial solution has only one item, as the coefficients can vary greatly
+    val solution = Array.fill(numItems)(0) // solution with only zeros
+    val randomIndices = Seq.fill(1)(Random.nextInt(numItems)) // initial solution has only one item, as the coefficients can vary greatly
     randomIndices.foreach(solution(_) = 1)
     solution.toList
   }
 
   def initialSolution(p: KpProblem): KpEvaluatedSolution = {
-    seed match {  // if a seed is set, evaluate it. Otherwise create random initial solution.
+    seed match { // if a seed is set, evaluate it. Otherwise create random initial solution.
       case Some(seedValue) => seedValue.evaluate(p).asInstanceOf[KpEvaluatedSolution]
       case None => p.evaluate(KpSolution(randomSolution(p.weights.length))).asInstanceOf[KpEvaluatedSolution]
     }
@@ -75,13 +78,13 @@ class SAAlgorithm() extends Algorithm {
     @tailrec
     def validMove(solution: List[Int]): List[Int] = {
       // create new solution randomly
-      var newSolution = List[Int]()  // empty list
+      var newSolution = List[Int]() // empty list
       var functionInt = 9999999
-      val itemIndices = solution.zipWithIndex.filter(pair => pair._1 == 1).map(pair => pair._2)  // how many items are selected?
-      if (itemIndices.length < 1){  // if there are no item in the current solution, always add an item
+      val itemIndices = solution.zipWithIndex.filter(pair => pair._1 == 1).map(pair => pair._2) // how many items are selected?
+      if (itemIndices.length < 1) { // if there are no item in the current solution, always add an item
         newSolution = Moves(random).addItem(solution)
       } else {
-        functionInt = Random.nextInt(List(1, 2, 3).length)  // produces random number 0, 1, or 2
+        functionInt = Random.nextInt(List(1, 2, 3).length) // produces random number 0, 1, or 2
         if (functionInt == 0) newSolution = Moves(random).addItem(solution) // all moves are equally likely to be chosen
         if (functionInt == 1) newSolution = Moves(random).swapItems(solution)
         if (functionInt == 2) newSolution = Moves(random).removeItem(solution)
@@ -89,39 +92,34 @@ class SAAlgorithm() extends Algorithm {
       // Check new solution
       if (checkConstraint(newSolution)) {
         newSolution // return the new solution
-      } else validMove(solution)  // create new solution if constraint is not satisfied
+      } else validMove(solution) // create new solution if constraint is not satisfied
     }
 
-    def acceptanceProbability(benefit: Double, temperature: Double): Double = scala.math.exp(benefit/temperature)
+    def acceptanceProbability(benefit: Double, temperature: Double): Double = scala.math.exp(benefit / temperature)
 
-    var evOldSolution = NaiveKpEvaluatedSolution(p)  // purely because it has to be an instance of NrEvaluatedSolution
+    var evOldSolution = NaiveKpEvaluatedSolution(p) // purely because it has to be an instance of NrEvaluatedSolution
     val stop = stopCond.asInstanceOf[TimeExpired].initialiseLimit()
+    val firstSolution = initialSolution(p)
 
     @tailrec
-    def loop(old: KpEvaluatedSolution, temp: Double, iter: Int): KpEvaluatedSolution = {
-      if ((temp > minTemperature)  && stop.isNotSatisfied()) {
-        if (iter == 1){
-          // initialize solution
-          evOldSolution = initialSolution(p)
-        } else evOldSolution = old
-        var temperature = temp
-        // generate random new solution
-        val newSolution = validMove(evOldSolution.solution.toList)
-        // calculate fitness for new solution
+    def loop(currentSol: KpEvaluatedSolution, currentTemp: Double): KpEvaluatedSolution = {
+      if (currentTemp <= minTemperature || !stop.isNotSatisfied) {
+        currentSol
+      } else {
+        val newSolution = validMove(currentSol.solution.toList)
         val evNewSolution = fitness(newSolution)
-        // calculate benefit from move
-        val benefit = evNewSolution.value - evOldSolution.value
-        // calculate acceptance probability
-        val ap = acceptanceProbability(benefit, temperature)
+        val benefit = evNewSolution.value - currentSol.value
+        val ap = acceptanceProbability(benefit, currentTemp)
         val randNo = random.nextDouble()
-        if ((benefit > 0) || (randNo <= ap)) {
-          evOldSolution = evNewSolution
+        val nextSol = if (benefit > 0 || randNo <= ap) {
+          evNewSolution
+        } else {
+          currentSol
         }
-        temperature = temperature / (1 + beta*temperature)  // update temperature
-        loop(evOldSolution, temperature, iter+1)  //  start new iteration
-      } else evOldSolution
+        val nextTemp = currentTemp / (1 + beta * currentTemp)
+        loop(nextSol, nextTemp)
+      }
     }
-    loop(evOldSolution, initialTemperature, iter = 1)
+    loop(firstSolution, initialTemperature)
   }
-
 }

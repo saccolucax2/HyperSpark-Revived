@@ -9,10 +9,8 @@ import pfsp.solution.PfsSolution
 import pfsp.solution.PfsEvaluatedSolution
 import it.polimi.hyperh.spark.TimeExpired
 import it.polimi.hyperh.spark.StoppingCondition
-import it.polimi.hyperh.spark.StoppingCondition
-import it.polimi.hyperh.spark.TimeExpired
 import pfsp.solution.NaivePfsEvaluatedSolution
-import it.polimi.hyperh.spark.StoppingCondition
+import scala.annotation.tailrec
 
 /**
  * @author Nemanja
@@ -40,13 +38,13 @@ extends MMMASAlgorithm(p, t0, cand, seedOption) {
   }
   
   //remove Tmax and Tmin limits
-  override def setT(iJob: Int, jPos: Int, newTij: Double) = {
+  override def setT(iJob: Int, jPos: Int, newTij: Double): Unit = {
     val i = iJob - 1
     val j = jPos - 1
     T(i)(j) = newTij
   }
   //differential initialization of trails based on the seed solution
-  def initializeTrails(bestSolution: PfsEvaluatedSolution) = {
+  def initializeTrails(bestSolution: PfsEvaluatedSolution): Unit = {
     val seed = bestSolution.permutation
     val Zbest = bestSolution.value
     for(i <- 1 to p.numOfJobs)
@@ -54,21 +52,21 @@ extends MMMASAlgorithm(p, t0, cand, seedOption) {
         val iJobPos = seed.indexWhere( _ == i) + 1
         val diff = scala.math.abs(iJobPos - j) + 1
         if(diff <= p.numOfJobs/4.0) {
-          setT(i, j, (1.0/Zbest))
+          setT(i, j, 1.0/Zbest)
         } 
         else if(p.numOfJobs/4.0 < diff && diff <= p.numOfJobs/2.0) {
-          setT(i, j, (1.0/(2*Zbest)))
+          setT(i, j, 1.0/(2*Zbest))
         } 
         else {
-          setT(i, j, (1.0/(4*Zbest)))
+          setT(i, j, 1.0/(4*Zbest))
         }
       }
   }
-  override def initialSolution() = {
+  override def initialSolution(): PfsEvaluatedSolution = {
     var solution = initialSolution(p)
     solution = localSearch(solution, new TimeExpired(300).initialiseLimit())
     updateTmax(solution)
-    updateTmin
+    updateTmin()
     initializeTrails(solution)
     solution
   }
@@ -80,14 +78,14 @@ extends MMMASAlgorithm(p, t0, cand, seedOption) {
     
     while(jPos <= p.numOfJobs) {
       var nextJob = -1
-      var u = random.nextDouble()
+      val u = random.nextDouble()
       if(u <= 0.4) {
         nextJob = bestSolution.solution.toList.filterNot(job => scheduled.contains(job)).head
       }
       else if(u <= 0.8) {
         candidates = bestSolution.solution.toList.filterNot(job => scheduled.contains(job)).take(cand)
         var max = 0.0
-        while(candidates.size != 0) {
+        while(candidates.nonEmpty) {
           val sij = sumij(candidates.head, jPos)
           if(sij > max) {
             max = sij
@@ -105,7 +103,7 @@ extends MMMASAlgorithm(p, t0, cand, seedOption) {
     }
     p.evaluatePartialSolution(scheduled)
   }
-  override def updatePheromones(antSolution: PfsEvaluatedSolution, bestSolution: PfsEvaluatedSolution) = {
+  override def updatePheromones(antSolution: PfsEvaluatedSolution, bestSolution: PfsEvaluatedSolution): Unit = {
     val usedSolution = antSolution
     val Zcurrent = antSolution.value
     for(i <- 1 to p.numOfJobs)
@@ -134,14 +132,14 @@ extends MMMASAlgorithm(p, t0, cand, seedOption) {
       }
   }
   //job-index-based swap scheme
-  def swapScheme(completeSolution: PfsEvaluatedSolution, stopCond: StoppingCondition): PfsEvaluatedSolution = {
+  private def swapScheme(completeSolution: PfsEvaluatedSolution, stopCond: StoppingCondition): PfsEvaluatedSolution = {
     var bestSolution = completeSolution
     val seed = bestSolution.permutation
     val seedList = seed.toList
     var i = 1
-    while(i <= p.numOfJobs && stopCond.isNotSatisfied()){
+    while(i <= p.numOfJobs && stopCond.isNotSatisfied){
       var j = 1
-      while(j <= p.numOfJobs && stopCond.isNotSatisfied()) {
+      while(j <= p.numOfJobs && stopCond.isNotSatisfied) {
         if(seed(j-1) != i) {
           val indI = seed.indexWhere( _ == i)
           val indK = j-1
@@ -160,8 +158,9 @@ extends MMMASAlgorithm(p, t0, cand, seedOption) {
     val p = problem.asInstanceOf[PfsProblem]
     val bestSol = NaivePfsEvaluatedSolution(p)
     val stop = stopCond.asInstanceOf[TimeExpired].initialiseLimit()
+    @tailrec
     def loop(bestSol: PfsEvaluatedSolution, iter: Int): PfsEvaluatedSolution = {
-      if(stop.isNotSatisfied()) {
+      if(stop.isNotSatisfied) {
         var bestSolution = bestSol
         if(iter == 0) {
           bestSolution = initialize()
@@ -180,9 +179,9 @@ extends MMMASAlgorithm(p, t0, cand, seedOption) {
     loop(bestSol, 0)
   }
   
-  override def evaluate(problem: Problem) = {
+  override def evaluate(problem: Problem): EvaluatedSolution = {
     val p = problem.asInstanceOf[PfsProblem]
-    val timeLimit = p.getExecutionTime()
+    val timeLimit = p.getExecutionTime
     val stopCond = new TimeExpired(timeLimit)
     evaluate(p, stopCond)
   }

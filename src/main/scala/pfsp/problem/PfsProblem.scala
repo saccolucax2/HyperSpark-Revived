@@ -2,7 +2,6 @@ package pfsp.problem
 
 import Array._
 import scala.io.Source
-import it.polimi.hyperh._
 import it.polimi.hyperh.types.Types._
 import it.polimi.hyperh.problem.Problem
 import it.polimi.hyperh.solution.Solution
@@ -11,6 +10,7 @@ import pfsp.util.PfsProblemParser
 import java.io.InputStream
 import pfsp.solution.PfsSolution
 import pfsp.solution.PfsEvaluatedSolution
+import scala.language.postfixOps
 
 @SerialVersionUID(100L)
 class PfsProblem(
@@ -19,14 +19,14 @@ class PfsProblem(
     val jobTimesMatrix: Array[Array[Int]] // delays(i)(j) of j-th job on i-th machine (0<=i<numOfMachines) (0<=j<numOfJobs)
     ) extends Problem {
 
-  val jobs = (1 to numOfJobs) toArray
+  val jobs: Array[Value] = (1 to numOfJobs) toArray
 
   //associate sequentially job key to array of times present in matrix
-  def associateJobToArray(jobs: Array[Int], jobTimesMatrix: Array[Array[Int]]) = {
+  def associateJobToArray(jobs: Array[Int], jobTimesMatrix: Array[Array[Int]]): Array[(Value, Array[Value])] = {
     jobs zip jobTimesMatrix
   }
   //returns array of times when provided the job value (key)
-  def getTimesArrayByJobKey(job: Int, pairs: Array[(Int, Array[Int])]) = pairs.filter(_._1 == job).map(pair => pair._2).flatten
+  def getTimesArrayByJobKey(job: Int, pairs: Array[(Int, Array[Int])]): Array[Value] = pairs.filter(_._1 == job).flatMap(pair => pair._2)
 
   //calculate end (completion) times for all jobs on each machine
   def jobsInitialTimes(): Array[Array[Int]] = {
@@ -37,28 +37,28 @@ class PfsProblem(
     }
     resultingMatrix
   }
-  val initEndTimesMatrix = jobsInitialTimes()
+  val initEndTimesMatrix: Array[Array[Value]] = jobsInitialTimes()
   //extracts end times from initEndTimesMatrix, e.g. Array(33, 31, 32, 29, 24)
   def extractEndTimes(matrix: Array[Array[Int]]): Array[Int] = {
-    matrix(matrix.size - 1)
+    matrix(matrix.length - 1)
   }
   //associates job key to value of its end time.e.g. Array((1,33), (2,31), (3,32), (4,29), (5,24))
-  def createJobValuePairs(jobs: Array[Int], times: Array[Int]) = {
+  def createJobValuePairs(jobs: Array[Int], times: Array[Int]): Array[(Value, Value)] = {
     jobs zip times
   }
   //sort pairs of (jobkey,endTime) by second parameter, in a decreasing order
-  def sortJobsDecreasing(pairs: Array[(Int, Int)]) = {
+  def sortJobsDecreasing(pairs: Array[(Int, Int)]): Array[(Value, Value)] = {
     pairs.sortBy(_._2).reverse
   }
   //gets first N jobs from a sorted (in decreased order) list of pairs (jobkey,endTime)
-  def getWorstNJobs(pairs: Array[(Int, Int)], n: Int) = {
+  def getWorstNJobs(pairs: Array[(Int, Int)], n: Int): Array[(Value, Value)] = {
     val sorted = sortJobsDecreasing(pairs)
     pairs.take(n)
   }
 
   def evaluatePartialSolution(jobsPermutation: Permutation): PfsEvaluatedSolution = {
     val numOfPartJobs = jobsPermutation.length
-    val numOfMachines = jobTimesMatrix.size
+    val numOfMachines = jobTimesMatrix.length
 	//table represents completion time matrix
     val table = Array.ofDim[Int](numOfMachines, jobsPermutation.length)
 	//first column is the same as in initEndTimesMatrix
@@ -72,36 +72,41 @@ class PfsProblem(
         table(mInd)(jInd) = table(mInd)(jInd - 1) + jobTimesMatrix(mInd)(jobsPermutation(jInd) - 1)
     }
     def encapsulate(value: Value, permutation: Array[Int]) = new PfsEvaluatedSolution(value, permutation)
-    encapsulate(table(table.size - 1).max, jobsPermutation)
+    encapsulate(table(table.length - 1).max, jobsPermutation)
   }
   def evaluatePartialSolution(jobsPermutation: List[Int]): PfsEvaluatedSolution = {
     evaluatePartialSolution(jobsPermutation.toArray)
   }
   def sumJobTimesMatrix(): Int = {
-    jobTimesMatrix.map(ar => ar.reduceLeft[Int](_ + _)).reduceLeft[Int](_ + _)
+    jobTimesMatrix.map(ar => ar.sum).sum
   }
   def evaluate(s: Solution): EvaluatedSolution = {
     val solution = s.asInstanceOf[PfsSolution]
     evaluatePartialSolution(solution.permutation.toList)
   }
   
-  def getExecutionTime(): Double = {
+  def getExecutionTime: Double = {
     numOfMachines * (numOfJobs / 2.0) * 60 //termination is n*(m/2)*60 milliseconds
   }
 }
 
-//Problem Factory
 object PfsProblem {
-  /**
-   * @arg path - path to a file
-   */
-  def fromFile(path: String): PfsProblem = PfsProblemParser(Source.fromFile(path).getLines().mkString(" x ") + " x ").getOrElse(throw new RuntimeException("ParserError"))
-  /**
-   * @arg name - name of a resource in src/main/resources and src/test/resources
-   */
-  def fromResources(name: String): PfsProblem = {
-    val stream: InputStream = getClass.getResourceAsStream("/" + name)
-    PfsProblemParser(Source.fromInputStream(stream).getLines().mkString(" x ") + " x ").getOrElse(throw new RuntimeException("ParserError"))
+
+  def fromFile(path: String): PfsProblem = {
+    parseAndClose(Source.fromFile(path))
   }
 
+  def fromResources(name: String): PfsProblem = {
+    val stream: InputStream = getClass.getResourceAsStream("/" + name)
+    if (stream == null) throw new RuntimeException(s"Resource /$name not found")
+    parseAndClose(Source.fromInputStream(stream))
+  }
+  private def parseAndClose(source: Source): PfsProblem = {
+    try {
+      val content = source.getLines().mkString(" x ") + " x "
+      PfsProblemParser(content).getOrElse(throw new RuntimeException("ParserError"))
+    } finally {
+      source.close()
+    }
+  }
 }

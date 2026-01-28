@@ -1,7 +1,5 @@
 package it.polimi.hyperh.apps
 
-import it.polimi.hyperh.problem.Problem
-import it.polimi.hyperh.solution.EvaluatedSolution
 import it.polimi.hyperh.spark.Framework
 import it.polimi.hyperh.spark.FrameworkConf
 import it.polimi.hyperh.spark.TimeExpired
@@ -13,29 +11,28 @@ import util.Performance
 import util.FileManager
 import util.CurrentTime
 import util.CustomLogger
-import java.io.File
 
 /**
  * @author Nemanja
  */
 class LocalTesterApp {
   val logger = CustomLogger() 
-  def filename(prefix: String, i: Int, sufix: String) = {
+  def filename(prefix: String, i: Int, sufix: String): String = {
     val str = i.toString
-    str.size match {
+    str.length match {
       case 1 => prefix + "00" + str + sufix
       case 2 => prefix + "0" + str + sufix
       case _ => prefix + str + sufix
     }
   }
   def formatNum(num: Double): String = {
-    val str = num.toString()
-    str.size match {
+    val str = num.toString
+    str.length match {
       case 3 => str + "0"
       case _ => str
     }
   }
-  def run() {
+  def run(): Unit = {
     val runs = 10
     val algorithm = new IGAlgorithm()
     val numOfAlgorithms = 4
@@ -59,7 +56,7 @@ class LocalTesterApp {
         .setNDefaultInitialSeeds(numOfAlgorithms)
         .setNumberOfIterations(numOfIterations)
         .setStoppingCondition(stopCond)
-      val resultStr = testInstance(i, runs, conf, true)
+      val resultStr = testInstance(i, runs, conf, solutionPresent = true)
       results :+= resultStr
       FileManager.append("./output/"+logname+".txt", resultStr)
       logger.printInfo(resultStr)
@@ -69,15 +66,15 @@ class LocalTesterApp {
     logger.printInfo(strEnd)
 
   }
-  def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false) = {
-    def getMode() = {
+  def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false): String = {
+    def getMode = {
       val usesTheSeed: Boolean = conf.getSeedingStrategy().usesTheSeed()
       val numOfIterations: Int = conf.getNumberOfIterations()
       if (usesTheSeed && numOfIterations > 1)
         "cooperative"
       else "parallel"
     }
-    val mode = getMode()
+    val mode = getMode
     var resString = ""
     val problem = conf.getProblem().asInstanceOf[PfsProblem]
     var bestSolution = NaivePfsEvaluatedSolution(problem)
@@ -94,7 +91,7 @@ class LocalTesterApp {
     } else {
       bestSolution = solutions.min.asInstanceOf[PfsEvaluatedSolution]
     }
-    for (j <- 0 until solutions.size) {
+    for (j <- solutions.indices) {
       val rpd = Performance.RPD(solutions(j).asInstanceOf[PfsEvaluatedSolution], bestSolution)
       val newString = logger.getValuesString(List(
         filename("inst_ta", i, ""),
@@ -117,7 +114,7 @@ class LocalTesterApp {
 
 }
 object LocalTesterApp {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     new LocalTesterApp().run()
   }
 }

@@ -33,11 +33,11 @@ object PermutationUtility {
   //evaluate all permutations, and return the best evaluated solution as pair (value, permutation)
     def getBestPermutation(permutations: List[List[Int]],p:PfsProblem): PfsEvaluatedSolution = {
       var evaluatedSolutions = List[PfsEvaluatedSolution]()
-      for(i <- 0 until permutations.size) {
+      for(i <- permutations.indices) {
         val evaluatedSolution=p.evaluatePartialSolution(permutations(i))
         evaluatedSolutions = evaluatedSolutions ::: List(evaluatedSolution)
       }
-      val minEvaluatedSolution = evaluatedSolutions.sortBy(_.value).head//endTimes.min
+      val minEvaluatedSolution = evaluatedSolutions.minBy(_.value) //endTimes.min
       minEvaluatedSolution
     }
     

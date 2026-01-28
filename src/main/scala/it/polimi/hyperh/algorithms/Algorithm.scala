@@ -29,8 +29,8 @@ trait Algorithm extends Serializable {
     val solution = evaluate(p, stopCond)
     solution
   }
-  def name = this.getClass.getSimpleName
-  def setRandomSeed(seed: Long) = {
+  def name: String = this.getClass.getSimpleName
+  def setRandomSeed(seed: Long): Algorithm = {
     random = new Random(seed)
     canModifyRandom = false
     this

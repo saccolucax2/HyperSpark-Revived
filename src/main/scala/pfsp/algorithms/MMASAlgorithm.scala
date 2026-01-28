@@ -1,16 +1,13 @@
 package pfsp.algorithms
 
-import scala.Ordering
-import it.polimi.hyperh.problem.Problem
 import it.polimi.hyperh.algorithms.Algorithm
-import it.polimi.hyperh.solution.EvaluatedSolution
-import it.polimi.hyperh.solution.Solution
 import pfsp.problem.PfsProblem
 import pfsp.neighbourhood.NeighbourhoodOperator
 import pfsp.solution.PfsEvaluatedSolution
 import pfsp.solution.PfsSolution
 import it.polimi.hyperh.spark.TimeExpired
 import it.polimi.hyperh.spark.StoppingCondition
+import scala.annotation.tailrec
 
 /**
  * @author Nemanja
@@ -27,22 +24,21 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
     this(p, 0.2, 5, None)//default values
   }
   //private var seed = seedOption
-  
-  def initNEHSolution(p: PfsProblem) = {
+  def initNEHSolution(p: PfsProblem): PfsEvaluatedSolution = {
     val nehAlgorithm = new NEHAlgorithm()
     nehAlgorithm.evaluate(p).asInstanceOf[PfsEvaluatedSolution]
   }
-  override def initialSolution() = {
-    def getSolution() ={
+  override def initialSolution(): PfsEvaluatedSolution = {
+    def getSolution ={
       seed match {    
       case Some(seedValue) => seedValue.evaluate(p).asInstanceOf[PfsEvaluatedSolution]
         case None => initNEHSolution(p)
       }
     }
-    var solution = getSolution()
+    var solution = getSolution
     solution = localSearch(solution, new TimeExpired(300).initialiseLimit())
     updateTmax(solution)
-    updateTmin
+    updateTmin()
     initializeTrails(Tmax)
     solution
   }
@@ -51,6 +47,7 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
       0
     else{
       def sumTrails(list: List[Int]): Double = {
+        @tailrec
         def sum(list: List[Int], acc: Double): Double = {
           list match {
             case List() => acc
@@ -72,7 +69,7 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
     
     while(jPos <= p.numOfJobs) {
       var nextJob = -1
-      var u = random.nextDouble()
+      val u = random.nextDouble()
       if(u <= p0) {
         candidates = bestSolution.solution.toList.filterNot(job => scheduled.contains(job)).take(cand)
         nextJob = getNextJob(scheduled, candidates, jPos)
@@ -88,18 +85,18 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
   }
   def p0: Double = (p.numOfJobs - 4.0)/p.numOfJobs
   def persistenceRate: Double = 0.75
-  def evaporationRate: Double = 1 - persistenceRate
-  var Tmax = 0.2
-  var Tmin = 0.04
-  def updateTmax(bestSolution: PfsEvaluatedSolution) = { Tmax = 1/(evaporationRate * bestSolution.value) }
-  def updateTmin = { Tmin = Tmax / 5 }
+  private def evaporationRate: Double = 1 - persistenceRate
+  private var Tmax = 0.2
+  private var Tmin = 0.04
+  def updateTmax(bestSolution: PfsEvaluatedSolution): Unit = { Tmax = 1/(evaporationRate * bestSolution.value) }
+  def updateTmin(): Unit = { Tmin = Tmax / 5 }
   
   def getNextJob(scheduled: List[Int], notScheduled: List[Int], jPos: Int): Int = {
     //construct pairs of (notScheduledJob, probability)
     def constructItems(list: List[Int]): List[(Int, Int)] = {
       var items: List[(Int, Int)] = List()
       var jobs = list
-      while(jobs.size != 0 ) {
+      while(jobs.nonEmpty) {
         val iJob = jobs.head
         val pij: Int = (probability(iJob, jPos, scheduled, notScheduled)*100).asInstanceOf[Int]
         items = items ::: List((iJob,pij))
@@ -110,8 +107,8 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
     val items = constructItems(notScheduled)
     def sample(list: List[(Int, Int)]) = {
       var items = list
-      var totalSum: Int = items.map(item => item._2).reduce(_ + _)
-      var index: Int = random.nextInt(totalSum+1)
+      val totalSum: Int = items.map(item => item._2).sum
+      val index: Int = random.nextInt(totalSum + 1)
       var sum = 0
       var item = items.head
       while(sum < index) {
@@ -128,13 +125,13 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
     var bestSolution = completeSolution
     if(p.numOfJobs <= 50) {
       val moves = NeighbourhoodOperator(random).generateAllNeighbourhoodMoves(p.numOfJobs)
-      while(stopCond.isNotSatisfied()) {
+      while(stopCond.isNotSatisfied) {
         bestSolution = tsAlgorithm.firstImprovement(p, bestSolution, moves, stopCond)._1
       }
       bestSolution
     }
     else {
-      while(stopCond.isNotSatisfied()) {
+      while(stopCond.isNotSatisfied) {
         val moves = NeighbourhoodOperator(random).generateNRandomNeighbourhoodMoves(p.numOfJobs, tsAlgorithm.getNumOfRandomMoves())
         bestSolution = tsAlgorithm.firstImprovement(p, bestSolution, moves, stopCond)._1 
       }
@@ -142,7 +139,7 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
     }
   }
   
-  def setT(iJob: Int, jPos: Int, newTij: Double) = {
+  def setT(iJob: Int, jPos: Int, newTij: Double): Unit = {
     val i = iJob - 1
     val j = jPos - 1
     if(newTij < Tmin)
@@ -152,9 +149,9 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
       else
         T(i)(j) = newTij
   }
-  override def updatePheromones(antSolution: PfsEvaluatedSolution, bestSolution: PfsEvaluatedSolution) = {
+  override def updatePheromones(antSolution: PfsEvaluatedSolution, bestSolution: PfsEvaluatedSolution): Unit = {
     updateTmax(bestSolution)
-    updateTmin
+    updateTmin()
     val usedSolution = bestSolution
     def deposit(iJob: Int,jPos: Int): Double = {
       if(usedSolution.permutation(jPos-1) == iJob)

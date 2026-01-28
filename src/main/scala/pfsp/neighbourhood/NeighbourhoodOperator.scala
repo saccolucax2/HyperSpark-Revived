@@ -17,33 +17,33 @@ class NeighbourhoodOperator(random: Random) {
     result(secondPoint) = tmp
     result.toList
   }
-  def AdjSWAPdefineMove(list: List[Int], firstPoint: Int): List[Int] = {
+  private def AdjSWAPdefineMove(list: List[Int], firstPoint: Int): List[Int] = {
     SWAPdefineMove(list, firstPoint, firstPoint + 1)
   }
-  def INVdefineMove(list: List[Int], firstPoint: Int, secondPoint: Int): List[Int] = {
+  private def INVdefineMove(list: List[Int], firstPoint: Int, secondPoint: Int): List[Int] = {
     val resultPart1 = list.take(firstPoint)
-    val resultPart2 = list.drop(firstPoint).take(secondPoint - firstPoint).reverse
+    val resultPart2 = list.slice(firstPoint, firstPoint + secondPoint - firstPoint).reverse
     val resultPart3 = list.drop(secondPoint)
     resultPart1 ::: resultPart2 ::: resultPart3
   }
-  def BckINSdefineMove(list: List[Int], firstPoint: Int, secondPoint: Int): List[Int] = {
+  private def BckINSdefineMove(list: List[Int], firstPoint: Int, secondPoint: Int): List[Int] = {
     val resultPart1 = list.take(firstPoint)
-    val resultPart2 = list.drop(secondPoint).take(1)
+    val resultPart2 = list.slice(secondPoint, secondPoint + 1)
     val resultPart3 = list.drop(firstPoint).filterNot(resultPart2.toSet)
     val result = resultPart1 ::: resultPart2 ::: resultPart3
     result
   }
-  def FwINSdefineMove(list: List[Int], firstPoint: Int, secondPoint: Int): List[Int] = {
-    val el1 = list.drop(firstPoint).take(1)
+  private def FwINSdefineMove(list: List[Int], firstPoint: Int, secondPoint: Int): List[Int] = {
+    val el1 = list.slice(firstPoint, firstPoint + 1)
     val resultPart1 = list.take(secondPoint+1).filterNot(el1.toSet)
     val resultPart2 = list.drop(secondPoint+1)
     val result = resultPart1 ::: el1 ::: resultPart2
     result
   }
   def INSdefineMove(list: List[Int], firstPoint: Int, secondPoint: Int): List[Int] = {
-    val el1 = list.drop(firstPoint).take(1)
+    val el1 = list.slice(firstPoint, firstPoint + 1)
     if(firstPoint < secondPoint) {//FwINS
-      val el1 = list.drop(firstPoint).take(1)
+      val el1 = list.slice(firstPoint, firstPoint + 1)
       val resultPart1 = list.take(secondPoint+1).filterNot(el1.toSet)
       val resultPart2 = list.drop(secondPoint+1)
       val result = resultPart1 ::: el1 ::: resultPart2
@@ -53,20 +53,20 @@ class NeighbourhoodOperator(random: Random) {
       val bckInsFP = secondPoint
       val bckInsSP = firstPoint
       val resultPart1 = list.take(bckInsFP)
-      val resultPart2 = list.drop(bckInsSP).take(1)
+      val resultPart2 = list.slice(bckInsSP, bckInsSP + 1)
       val resultPart3 = list.drop(bckInsFP).filterNot(resultPart2.toSet)
       val result = resultPart1 ::: resultPart2 ::: resultPart3
       result
     }
   }
   //RANDOM MOVES GENERATORS
-  def randomZeroToNminusOne(n: Int): Int = {
+  private def randomZeroToNminusOne(n: Int): Int = {
     random.nextInt(n)
   }
-  def randomZeroToNminusTwo(n: Int): Int = {
+  private def randomZeroToNminusTwo(n: Int): Int = {
     random.nextInt(n - 1)
   }
-  def randomNeighbourPair(n: Int): (Int, Int) = {
+  private def randomNeighbourPair(n: Int): (Int, Int) = {
     val firstPoint = randomZeroToNminusOne(n) //[0,n-1]
     var secondPoint = firstPoint
     while (secondPoint == firstPoint) { //second point must be different than first
@@ -74,10 +74,10 @@ class NeighbourhoodOperator(random: Random) {
     }
     (firstPoint, secondPoint)
   }
-  def randomSuccessivePoint(firstPoint:Int, n: Int): Int = {
+  private def randomSuccessivePoint(firstPoint:Int, n: Int): Int = {
     firstPoint + 1 + random.nextInt(n - firstPoint - 1) //[firstPoint+1,n]
   }
-  def randomSuccessivePair(n: Int): (Int, Int) = {
+  private def randomSuccessivePair(n: Int): (Int, Int) = {
     val firstPoint = randomZeroToNminusTwo(n) //[0,n-2]
     val secondPoint = randomSuccessivePoint(firstPoint, n) //[firstPoint+1,n]
     (firstPoint, secondPoint)
@@ -135,7 +135,7 @@ class NeighbourhoodOperator(random: Random) {
   def SWAPreturnMove(list: List[Int]): (List[Int], (Int, Int)) = {
     val pair = randomNeighbourPair(list.size) //firstPoint: [0,n-1],secondPoint:  [0, n-1], firstPoint!=secondPoint
     val result = SWAPdefineMove(list, pair._1, pair._2)
-    (result.toList, pair)
+    (result, pair)
   }
   def AdjSWAPreturnMove(list: List[Int]): (List[Int], (Int, Int)) = {
     val firstPoint = random.nextInt(list.size - 1) //[0,n-2]
@@ -146,12 +146,12 @@ class NeighbourhoodOperator(random: Random) {
     val result = INVdefineMove(list, pair._1, pair._2)
     (result, pair)
   }
-  def BckINSreturnMove(list: List[Int]): (List[Int], (Int, Int)) = {
+  private def BckINSreturnMove(list: List[Int]): (List[Int], (Int, Int)) = {
     val pair = randomSuccessivePair(list.size) //firstPoint: [0,n-2],secondPoint:  [firstPoint+1,n]
     val result =  BckINSdefineMove(list, pair._1, pair._2)
     (result, pair)
   }
-  def FwINSreturnMove(list: List[Int]): (List[Int], (Int, Int)) = {
+  private def FwINSreturnMove(list: List[Int]): (List[Int], (Int, Int)) = {
     val pair = randomSuccessivePair(list.size) //firstPoint: [0,n-2],secondPoint:  [firstPoint+1,n]
     val result = FwINSdefineMove(list, pair._1, pair._2)
     (result, pair)
@@ -165,7 +165,7 @@ class NeighbourhoodOperator(random: Random) {
   }
   def INSreturnMove(list: List[Int]): (List[Int], (Int, Int)) = {
     val pair = randomNeighbourPair(list.size) //firstPoint: [0,n-1],secondPoint:  [0, n-1], firstPoint!=secondPoint
-    val el1 = list.drop(pair._1).take(1)
+    val el1 = list.slice(pair._1, pair._1 + 1)
     if(pair._1 < pair._2) {//FwINS
       val result = FwINSdefineMove(list, pair._1, pair._2)
       (result, pair)
@@ -178,10 +178,10 @@ class NeighbourhoodOperator(random: Random) {
   }
 }
 object NeighbourhoodOperator {
-  def apply(random: Random) = {
+  def apply(random: Random): NeighbourhoodOperator = {
     new NeighbourhoodOperator(random)
   }
-  def apply() = {
+  def apply(): NeighbourhoodOperator = {
     new NeighbourhoodOperator()  
   }
 }

@@ -1,6 +1,5 @@
 package pfsp.algorithms
 
-import scala.Ordering
 import it.polimi.hyperh.problem.Problem
 import it.polimi.hyperh.solution.EvaluatedSolution
 import it.polimi.hyperh.spark.StoppingCondition
@@ -33,11 +32,11 @@ class HGAAlgorithm(
   seed = seedOption
   
   def acceptanceProbability(delta: Int, temperature: Double): Double = {
-    scala.math.min(1.0, scala.math.pow(2.71828, (-delta / temperature)))
+    scala.math.min(1.0, scala.math.pow(2.71828, -delta / temperature))
   }
   override def evaluate(problem: Problem): EvaluatedSolution = {
     val p = problem.asInstanceOf[PfsProblem]
-    val timeLimit = p.getExecutionTime()
+    val timeLimit = p.getExecutionTime
     val stopCond = new TimeExpired(timeLimit)
     evaluate(p, stopCond)
   }
@@ -46,18 +45,18 @@ class HGAAlgorithm(
     //INITIALIZE POPULATION
     var population = initSeedPlusRandom(p, popSize)
     var bestSolution = population.minBy(_.value)
-    var worstSolution = population.maxBy(_.value)
+    val worstSolution = population.maxBy(_.value)
     val delta = worstSolution.value - bestSolution.value
     temperatureUB = -delta / scala.math.log(prob)
     val stop = stopCond.asInstanceOf[TimeExpired].initialiseLimit()
     
-    while (stop.isNotSatisfied()) {
+    while (stop.isNotSatisfied) {
       //DIVIDE POPULATION IN 4 SUBPOPULATION
       val subPopSize = popSize / 4
       var subpopulation1 = population.take(subPopSize)
-      var subpopulation2 = population.drop(subPopSize).take(subPopSize)
-      var subpopulation3 = population.drop(2*subPopSize).take(subPopSize)
-      var subpopulation4 = population.drop(3*subPopSize).take(subPopSize)
+      var subpopulation2 = population.slice(subPopSize, subPopSize + subPopSize)
+      var subpopulation3 = population.slice(2 * subPopSize, 2 * subPopSize + subPopSize)
+      var subpopulation4 = population.slice(3 * subPopSize, 3 * subPopSize + subPopSize)
       //CROSSOVER
       subpopulation1 = crossover(p, subpopulation1, bestSolution, crossoverLOX, stop)
       subpopulation2 = crossover(p, subpopulation2, bestSolution, crossoverPMX, stop)
@@ -77,7 +76,7 @@ class HGAAlgorithm(
   def crossover(p: PfsProblem, subpopulation: Array[PfsEvaluatedSolution], bestSolution: PfsEvaluatedSolution,
       operator: (List[Int], List[Int]) => (List[Int], List[Int]), stopCond: StoppingCondition): Array[PfsEvaluatedSolution] = {
     var newPopulation = subpopulation
-    val Ps = subpopulation.size
+    val Ps = subpopulation.length
     //parent1 uses bestSolution
     val parent1 = bestSolution
     //select parent2 using uniform distribution
@@ -90,18 +89,17 @@ class HGAAlgorithm(
     newPopulation = newPopulation.sortBy[Int](_.value)(Ordering.Int).take(Ps)
     newPopulation
   }
-  def metropolis(p: PfsProblem, population: Array[PfsEvaluatedSolution], stopCond: StoppingCondition) = {
-
-    var evOldPopulation = population
+  def metropolis(p: PfsProblem, population: Array[PfsEvaluatedSolution], stopCond: StoppingCondition): Array[PfsEvaluatedSolution] = {
+    val evOldPopulation = population
     var temperature = temperatureUB
     var iter = 0
     //repeat metropolis sample n times at current temperature
-    while (iter < p.numOfJobs && stopCond.isNotSatisfied()) {
-      for(i <- 0 until evOldPopulation.size) {
+    while (iter < p.numOfJobs && stopCond.isNotSatisfied) {
+      for(i <- evOldPopulation.indices) {
         var newSolution: List[Int] = List()
         var localBest = evOldPopulation(i)
         var runs = 0
-        while((runs < p.numOfJobs) && stopCond.isNotSatisfied()) {
+        while((runs < p.numOfJobs) && stopCond.isNotSatisfied) {
           //START METROPOLIS SAMPLE ITERATION
           //generate random neighbouring solution
           //i mod 4, 0,1: swap, 2: inv, 3: ins

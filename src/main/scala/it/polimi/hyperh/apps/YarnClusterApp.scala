@@ -8,9 +8,7 @@ import pfsp.solution.PfsEvaluatedSolution
 import pfsp.solution.NaivePfsEvaluatedSolution
 import pfsp.algorithms.IGAlgorithm
 import util.Performance
-import util.FileManager
 import util.CustomLogger
-import java.io.File
 import util.CurrentTime
 
 /**
@@ -18,22 +16,22 @@ import util.CurrentTime
  */
 object YarnClusterApp {
   val logger = CustomLogger() 
-  def filename(prefix: String, i: Int, sufix: String) = {
+  private def filename(prefix: String, i: Int, sufix: String) = {
     val str = i.toString
-    str.size match {
+    str.length match {
       case 1 => prefix + "00" + str + sufix
       case 2 => prefix + "0" + str + sufix
       case _ => prefix + str + sufix
     }
   }
-  def formatNum(num: Double): String = {
-    val str = num.toString()
-    str.size match {
+  private def formatNum(num: Double): String = {
+    val str = num.toString
+    str.length match {
       case 3 => str + "0"
       case _ => str
     }
   }
-  def run() {
+  def run(): Unit = {
     val runs = 10
     val algorithm = new IGAlgorithm()
     val numOfAlgorithms = 4
@@ -58,7 +56,7 @@ object YarnClusterApp {
         .setNDefaultInitialSeeds(numOfAlgorithms)
         .setNumberOfIterations(numOfIterations)
         .setStoppingCondition(stopCond)
-      val resultStr = testInstance(i, runs, conf, true)
+      val resultStr = testInstance(i, runs, conf, solutionPresent = true)
       results :+= resultStr
       //FileManager.append("./output/"+logname+".txt", resultStr)
       logger.printInfo(resultStr)
@@ -67,22 +65,23 @@ object YarnClusterApp {
     logger.printInfo("End time\t\t"+CurrentTime()+"\n")
 
   }
-  def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false) = {
-    def getMode() = {
+
+  private def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false) = {
+    def getMode = {
       val usesTheSeed: Boolean = conf.getSeedingStrategy().usesTheSeed()
       val numOfIterations: Int = conf.getNumberOfIterations()
       if (usesTheSeed && numOfIterations > 1)
         "cooperative"
       else "parallel"
     }
-    val mode = getMode()
+    val mode = getMode
     var resString = ""
     val problem = conf.getProblem().asInstanceOf[PfsProblem]
     var bestSolution = NaivePfsEvaluatedSolution(problem)
     val n = problem.numOfJobs
     val m = problem.numOfMachines
     val algName = conf.getAlgorithms().apply(0).name //take first alg name
-    val parallelism = conf.getAlgorithms().size
+    val parallelism = conf.getAlgorithms().length
     val iterTimeLimit = conf.getStoppingCondition().asInstanceOf[TimeExpired].getLimit()
     val totalTime = iterTimeLimit * conf.getNumberOfIterations()
     //var rpds: List[Double] = List()
@@ -92,7 +91,7 @@ object YarnClusterApp {
     } else {
       bestSolution = solutions.min.asInstanceOf[PfsEvaluatedSolution]
     }
-    for (j <- 0 until solutions.size) {
+    for (j <- solutions.indices) {
       val rpd = Performance.RPD(solutions(j).asInstanceOf[PfsEvaluatedSolution], bestSolution)
       val newString = logger.getValuesString(List(
         filename("inst_ta", i, ""),

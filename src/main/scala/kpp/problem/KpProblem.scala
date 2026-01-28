@@ -12,7 +12,7 @@ class KpProblem(val capacity: Int, val profits: Array[Int], val weights: Array[I
   val initialSolution: Array[Int] = Array.fill(profits.length)(0)
 
   def calculateWeights(itemIndices: List[Int]): Int = {itemIndices.map(weights).sum}
-  def calculateProfits(itemIndices: List[Int]): Int = {itemIndices.map(profits).sum}
+  private def calculateProfits(itemIndices: List[Int]): Int = {itemIndices.map(profits).sum}
 
   def evaluate(s: Solution): EvaluatedSolution = {
     val solution = s.asInstanceOf[KpSolution]

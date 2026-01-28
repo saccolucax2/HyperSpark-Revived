@@ -1,16 +1,10 @@
 package it.polimi.hyperh.experiments
 
-import it.polimi.hyperh.problem.Problem
-import it.polimi.hyperh.solution.EvaluatedSolution
-import it.polimi.hyperh.spark.Framework
 import it.polimi.hyperh.spark.FrameworkConf
 import it.polimi.hyperh.spark.TimeExpired
 import it.polimi.hyperh.spark.SameSeeds
 import pfsp.problem.PfsProblem
 import pfsp.algorithms.HGAAlgorithm
-import pfsp.util.PermutationUtility
-import util.Performance
-import util.CustomLogger
 import util.CurrentTime
 import pfsp.algorithms.IGAlgorithm
 import pfsp.spark.SeedPlusSlidingWindow
@@ -21,7 +15,7 @@ import pfsp.spark.SeedPlusFixedWindow
  */
 class Experiment2(instance: Int, parallelism: Int, algName: String, strat: String) 
 extends Experiment(instance, parallelism) {
-  override def run() {
+  override def run(): Unit = {
     val runs = 1
     val problem = PfsProblem.fromResources(filename("inst_ta", instance, ".txt"))
     val algorithm = algName match {
@@ -55,7 +49,7 @@ extends Experiment(instance, parallelism) {
       .setNumberOfIterations(numOfIterations)
       .setStoppingCondition(stopCond)
       .setSeedingStrategy(strategy)
-    val resultStr = testInstance(instance, runs, conf, true)
+    val resultStr = testInstance(instance, runs, conf, solutionPresent = true)
     logger.printInfo(resultStr)
     val logEndTime = CurrentTime()
     val strEnd = "End time\t\t"+logEndTime+"\n"
@@ -66,7 +60,7 @@ extends Experiment(instance, parallelism) {
   }
 }
 object Experiment2 {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     var instance = 1
     var parallelism = 1
     var algName= "HGAAlgorithm"
@@ -84,6 +78,6 @@ object Experiment2 {
     else {
       println("Not enough arguments passed. Using default Framework configuration...")
     }
-    (new Experiment2(instance, parallelism, algName,strat)).run()
+    new Experiment2(instance, parallelism, algName,strat).run()
   }
 }

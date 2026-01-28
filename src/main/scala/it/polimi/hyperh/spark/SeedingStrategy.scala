@@ -1,7 +1,6 @@
 package it.polimi.hyperh.spark
 
 import it.polimi.hyperh.solution.Solution
-import scala.util.Random
 
 /**
  * @author Nemanja

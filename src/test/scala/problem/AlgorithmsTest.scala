@@ -77,7 +77,6 @@ class AlgorithmsTest extends Assertions {
     val tsRPD = Performance.RPD(tsEvSolution, bestFoundSol)
     println("TS: " + tsRPD)
     
-    
     //Use TSABAlgorithm to evaluate inst_ta+"i"
     val tsabAlgorithm = new TSABAlgorithm()
     val tsabEvSolution = tsabAlgorithm.evaluate(problem, stopCond).asInstanceOf[PfsEvaluatedSolution]

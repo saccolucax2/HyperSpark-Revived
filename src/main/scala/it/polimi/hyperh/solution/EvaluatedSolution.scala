@@ -1,6 +1,5 @@
 package it.polimi.hyperh.solution
 
-import it.polimi.hyperh.types.Types._
 import it.polimi.hyperh.problem.Problem
 
 abstract class EvaluatedSolution(
@@ -9,7 +8,7 @@ abstract class EvaluatedSolution(
     extends Solution with Ordered[EvaluatedSolution] {
     
   override def evaluate(problem: Problem): EvaluatedSolution = this
-  override def toString = {
+  override def toString: String = {
     val solString = solution.toString()
     val str = "EvaluatedSolution(value:" + value + ", solution:" + solString + ")"
     str

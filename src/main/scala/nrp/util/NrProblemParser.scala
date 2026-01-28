@@ -3,31 +3,44 @@ package nrp.util
 import scala.io.Source
 import nrp.problem.NrProblem
 
-object NrProblemParser{
-  def apply(fileName: String): NrProblem = {
-    val path = "src/main/resources/"
-    // Number of customers
-    val parametersFile = path + fileName + "Parameters.txt"
-    val parametersString = Source.fromFile(parametersFile).getLines.toArray
-    val parameters = parametersString.map(x => x.toInt)
-    val numCustomers = parameters(0)
-    val numLevels = parameters(1)
-    // Customer weights
-    val custWFile = path + fileName + "CustomerWeights.txt"
-    val customerWeightsCharacters = Source.fromFile(custWFile).getLines.toArray
-    val customerWeights = customerWeightsCharacters.map(x => x.toDouble)
-    // Customer requirements
-    val custRFile = path + fileName + "CustomerRequirements.txt"
-    val customerRequirements = Source.fromFile(custRFile).getLines().map(_.split(",").map(_.trim.toInt).toArray).toArray
-    // Costs per node
-    val nodeCFile = path + fileName + "NodeCosts.txt"
-    val nodeCostsCharacter = Source.fromFile(nodeCFile).getLines().toArray
-    val nodeCosts = nodeCostsCharacter.map(x => x.toDouble)
-    // Parents per node
-    val nodePFile = path + fileName + "NodeParents.txt"
-    val nodeParents = Source.fromFile(nodePFile).getLines().map(_.split(",").map(_.trim.toInt).toArray).toArray
+object NrProblemParser {
 
-    // New problem instance
-    new NrProblem(numCustomers, numLevels, customerWeights, customerRequirements, nodeCosts, nodeParents)
+  def apply(prefix: String): NrProblem = {
+    val basePath = "src/main/resources/" + prefix
+    def readLines(suffix: String): List[String] = {
+      val fullPath = basePath + suffix
+      val source = Source.fromFile(fullPath)
+      try {
+        source.getLines()
+          .map(_.trim)
+          .filter(_.nonEmpty)
+          .toList
+      } finally {
+        source.close()
+      }
+    }
+    val paramLines = readLines("Parameters.txt")
+    val numCustomers = paramLines.head.toInt
+    val numLevels    = paramLines(1).toInt
+    val customerWeights = readLines("CustomerWeights.txt")
+      .map(_.toDouble)
+      .toArray
+    val customerRequirements = readLines("CustomerRequirements.txt")
+      .map(_.split(",").map(_.trim.toInt))
+      .toArray
+    val nodeCosts = readLines("NodeCosts.txt")
+      .map(_.toDouble)
+      .toArray
+    val nodeParents = readLines("NodeParents.txt")
+      .map(_.split(",").map(_.trim.toInt))
+      .toArray
+    new NrProblem(
+      numCustomers,
+      numLevels,
+      customerWeights,
+      customerRequirements,
+      nodeCosts,
+      nodeParents
+    )
   }
 }

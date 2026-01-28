@@ -1,12 +1,10 @@
-package pfsp.parallel;
+package pfsp.parallel
 
-import it.polimi.hyperh.solution.Solution
 import it.polimi.hyperh.solution.EvaluatedSolution
 import pfsp.problem.PfsProblem
 import scala.util.Random
 import akka.actor.Actor
 import akka.actor.Props
-import akka.event.Logging
 import akka.actor.ActorRef
 import akka.actor.ActorSystem
 import akka.routing.RoundRobinPool
@@ -14,9 +12,9 @@ import pfsp.solution.PfsSolution
 import pfsp.solution.PfsEvaluatedSolution
 
 object ParallelWork extends App {
-  override def main(args: Array[String]) {
+  override def main(args: Array[String]): Unit = {
     
-    def calculate(p:PfsProblem, evOldSolution:PfsEvaluatedSolution, nrOfWorkers: Int, sizeOfNeighbourhood: Int) {
+    def calculate(p:PfsProblem, evOldSolution:PfsEvaluatedSolution, nrOfWorkers: Int, sizeOfNeighbourhood: Int): Unit = {
       // Create an Akka system
       val system = ActorSystem("ParallelSystem")
 
@@ -34,7 +32,7 @@ object ParallelWork extends App {
     val p = PfsProblem.fromResources("inst_ta001.txt")
     val permutationList = Random.shuffle(p.jobs.toList)
     val oldSolution = PfsSolution(permutationList)
-    var evOldSolution = p.evaluate(oldSolution).asInstanceOf[PfsEvaluatedSolution]
+    val evOldSolution = p.evaluate(oldSolution).asInstanceOf[PfsEvaluatedSolution]
     calculate(p, evOldSolution, 7, 300)
   }
   case object Calculate
@@ -44,7 +42,7 @@ object ParallelWork extends App {
 }
 class Worker extends Actor {
   import ParallelWork._
-  def receive = {
+  def receive: Receive = {
     case Work(p, solution, initEndTimesMatrix) =>
       val evSolution = p.evaluatePartialSolution(solution.permutation)
       sender ! SingleResult(evSolution)
@@ -52,7 +50,7 @@ class Worker extends Actor {
 }
 class Listener extends Actor {
   import ParallelWork._
-  override def receive = {
+  override def receive: Receive = {
     case FinalResult(evSolution, duration) =>
       println("bestSolution: " + evSolution + " millis: " + duration)
       context.system.shutdown()
@@ -64,19 +62,22 @@ class Master(p: PfsProblem,
              sizeOfNeighbourhood: Int,
              listener: ActorRef) extends Actor {
   import ParallelWork._
-  var nrOfResults: Int = 0
-  val startMillis: Long = System.currentTimeMillis
-  val initEndTimesMatrix = p.jobsInitialTimes()
+
+  private val nrOfResults: Int = 0
+  private val startMillis: Long = System.currentTimeMillis
+  val initEndTimesMatrix: Array[Array[Int]] = p.jobsInitialTimes()
   var bestSolution: EvaluatedSolution = evOldSolution
-  val workerRouter = context.actorOf(
+  private val workerRouter = context.actorOf(
     Props[Worker].withRouter(RoundRobinPool(nrOfWorkers)), name = "workerRouter")
 
-  override def receive = {
+  override def receive: Receive = onMessage(nrOfResults)
+
+  private def onMessage(nrOfResults: Int): Receive = {
     case Calculate =>
       for (i <- 0 until sizeOfNeighbourhood)
         workerRouter ! Work(p, PfsSolution(Random.shuffle(p.jobs.toList)), initEndTimesMatrix)
     case SingleResult(evNewSolution) =>
-      nrOfResults += 1
+      context.become(onMessage(nrOfResults + 1))
       bestSolution = List(evNewSolution, bestSolution).min
       if (nrOfResults == sizeOfNeighbourhood) {
         // Send the result to the listener

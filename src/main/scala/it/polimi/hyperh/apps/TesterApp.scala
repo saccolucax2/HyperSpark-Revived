@@ -11,29 +11,28 @@ import util.Performance
 import util.FileManager
 import util.CustomLogger
 import util.CurrentTime
-import java.io.File
 
 /**
  * @author Nemanja
  */
 class TesterApp {
   val logger = CustomLogger() 
-  def filename(prefix: String, i: Int, sufix: String) = {
+  def filename(prefix: String, i: Int, sufix: String): String = {
     val str = i.toString
-    str.size match {
+    str.length match {
       case 1 => prefix + "00" + str + sufix
       case 2 => prefix + "0" + str + sufix
       case _ => prefix + str + sufix
     }
   }
   def formatNum(num: Double): String = {
-    val str = num.toString()
-    str.size match {
+    val str = num.toString
+    str.length match {
       case 3 => str + "0"
       case _ => str
     }
   }
-  def run() {
+  def run(): Unit = {
     val runs = 10
     val algorithm = new IGAlgorithm()
     val numOfAlgorithms = 4
@@ -59,7 +58,7 @@ class TesterApp {
         .setNDefaultInitialSeeds(numOfAlgorithms)
         .setNumberOfIterations(numOfIterations)
         .setStoppingCondition(stopCond)
-      val resultStr = testInstance(i, runs, conf, true)
+      val resultStr = testInstance(i, runs, conf, solutionPresent = true)
       results :+= resultStr
       FileManager.append("./output/"+logname+".txt", resultStr)
       logger.printInfo(resultStr)
@@ -68,22 +67,22 @@ class TesterApp {
     logger.printInfo("End time\t\t"+CurrentTime()+"\n")
 
   }
-  def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false) = {
-    def getMode() = {
+  def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false): String = {
+    def getMode = {
       val usesTheSeed: Boolean = conf.getSeedingStrategy().usesTheSeed()
       val numOfIterations: Int = conf.getNumberOfIterations()
       if (usesTheSeed && numOfIterations > 1)
         "cooperative"
       else "parallel"
     }
-    val mode = getMode()
+    val mode = getMode
     var resString = ""
     val problem = conf.getProblem().asInstanceOf[PfsProblem]
     var bestSolution = NaivePfsEvaluatedSolution(problem)
     val n = problem.numOfJobs
     val m = problem.numOfMachines
     val algName = conf.getAlgorithms().apply(0).name //take first alg name
-    val parallelism = conf.getAlgorithms().size
+    val parallelism = conf.getAlgorithms().length
     val iterTimeLimit = conf.getStoppingCondition().asInstanceOf[TimeExpired].getLimit()
     val totalTime = iterTimeLimit * conf.getNumberOfIterations()
     //var rpds: List[Double] = List()
@@ -93,7 +92,7 @@ class TesterApp {
     } else {
       bestSolution = solutions.min.asInstanceOf[PfsEvaluatedSolution]
     }
-    for (j <- 0 until solutions.size) {
+    for (j <- solutions.indices) {
       val rpd = Performance.RPD(solutions(j).asInstanceOf[PfsEvaluatedSolution], bestSolution)
       val newString = logger.getValuesString(List(
         filename("inst_ta", i, ""),
@@ -116,7 +115,7 @@ class TesterApp {
 
 }
 object TesterApp {
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
      new TesterApp().run()
   }
 }

@@ -4,10 +4,9 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import it.polimi.hyperh.problem.Problem
-import it.polimi.hyperh.solution.Solution
 import it.polimi.hyperh.solution.EvaluatedSolution
-import it.polimi.hyperh.algorithms.Algorithm
-import util.RoundRobinIterator
+
+import scala.annotation.tailrec
 
 /**
  * @author Nemanja
@@ -15,9 +14,9 @@ import util.RoundRobinIterator
 object Framework {
   private var sparkContext: Option[SparkContext] = None
   private var conf: Option[FrameworkConf] = None
-  def setConf(fc: FrameworkConf) = { conf = Some(fc) }
-  def getConf(): FrameworkConf = conf.getOrElse(throw new RuntimeException("FrameworkConf not set"))
-  private def getSparkContext(): SparkContext = sparkContext.getOrElse(throw new RuntimeException("SparkContext error"))
+  private def setConf(fc: FrameworkConf): Unit = { conf = Some(fc) }
+  private def getConf: FrameworkConf = conf.getOrElse(throw new RuntimeException("FrameworkConf not set"))
+  private def getSparkContext: SparkContext = sparkContext.getOrElse(throw new RuntimeException("SparkContext error"))
   private var notStarted: Boolean = true
   private var mrHandler: MapReduceHandler = new MapReduceHandler()
   private var seedingStrategy: SeedingStrategy = new SameSeeds()
@@ -27,7 +26,7 @@ object Framework {
     //problem specific settings
     val problem = conf.getProblem()
     val algorithms = conf.getAlgorithms()
-    val numOfTasks = algorithms.size
+    val numOfTasks = algorithms.length
     val seeds = conf.getInitialSeeds()
     val stopCond = conf.getStoppingCondition()
     val iterations = conf.getNumberOfIterations()
@@ -38,7 +37,7 @@ object Framework {
       sparkContext = Some(new SparkContext(sparkConf))
       notStarted = false
     }
-    val sc = getSparkContext()
+    val sc = getSparkContext
     val rdd = sc.parallelize(dataset, numOfTasks).cache
     mrHandler = conf.getMapReduceHandler()
     seedingStrategy = conf.getSeedingStrategy()
@@ -51,7 +50,7 @@ object Framework {
     //problem specific settings
     val problem = conf.getProblem()
     val algorithms = conf.getAlgorithms()
-    val numOfTasks = algorithms.size
+    val numOfTasks = algorithms.length
     val seeds = conf.getInitialSeeds()
     val stopCond = conf.getStoppingCondition()
     val iterations = conf.getNumberOfIterations()//coop. iterations to be performed in one run, default: 1
@@ -62,7 +61,7 @@ object Framework {
       sparkContext = Some(new SparkContext(sparkConf))
       notStarted = false
     }
-    val sc = getSparkContext()
+    val sc = getSparkContext
     val rdd = sc.parallelize(dataset, numOfTasks).cache
     mrHandler = conf.getMapReduceHandler()
     seedingStrategy = conf.getSeedingStrategy()
@@ -74,18 +73,19 @@ object Framework {
      }
     solutions
   }
-  def stop() = {
-    val sc = getSparkContext()
+  def stop(): Unit = {
+    val sc = getSparkContext
     sc.stop()
     sparkContext = None
   }
   
-  def hyperLoop(problem: Problem, rdd: RDD[DistributedDatum], maxIter: Int, runNo: Int):EvaluatedSolution = {
+  private def hyperLoop(problem: Problem, rdd: RDD[DistributedDatum], maxIter: Int, runNo: Int):EvaluatedSolution = {
 
     var bestSolution: EvaluatedSolution = null
 
     var iterationSolutions: Array[AnyVal] = Array()
 
+    @tailrec
     def iterloop(rdd: RDD[DistributedDatum], iterationNo: Int): EvaluatedSolution = {
       val bestIterSolution = rdd
       .map(datum => mrHandler.hyperMap(problem, datum, runNo))
@@ -107,10 +107,10 @@ object Framework {
     }
     iterloop(rdd, 1)
   }
-  def updateRDD(rdd: RDD[DistributedDatum], seed: EvaluatedSolution): RDD[DistributedDatum] = {
-    val numOfTasks = getConf().getAlgorithms().size
+  private def updateRDD(rdd: RDD[DistributedDatum], seed: EvaluatedSolution): RDD[DistributedDatum] = {
+    val numOfTasks = getConf.getAlgorithms().length
     val seeds = seedingStrategy.divide(Some(seed), numOfTasks)
-    if(seeds.size < numOfTasks)
+    if(seeds.length < numOfTasks)
       throw new RuntimeException("Seeding strategy did not produce the correct number of seeds.")
     val updatedRDD = rdd.map(d => DistributedDatum(d.id, d.algorithm, seeds(d.id), d.stoppingCondition))
     updatedRDD

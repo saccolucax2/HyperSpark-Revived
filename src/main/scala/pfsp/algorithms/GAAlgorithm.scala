@@ -1,9 +1,7 @@
 package pfsp.algorithms
 
-import scala.Ordering
 import it.polimi.hyperh.problem.Problem
 import it.polimi.hyperh.solution.EvaluatedSolution
-import it.polimi.hyperh.solution.Solution
 import it.polimi.hyperh.algorithms.Algorithm
 import pfsp.problem.PfsProblem
 import pfsp.solution.NaivePfsEvaluatedSolution
@@ -12,6 +10,7 @@ import pfsp.solution.PfsEvaluatedSolution
 import pfsp.neighbourhood.NeighbourhoodOperator
 import it.polimi.hyperh.spark.StoppingCondition
 import it.polimi.hyperh.spark.TimeExpired
+import scala.annotation.tailrec
 
 /**
  * @author Nemanja
@@ -51,7 +50,7 @@ class GAAlgorithm(
   }
   override def evaluate(problem: Problem): EvaluatedSolution = {
     val p = problem.asInstanceOf[PfsProblem]
-    val timeLimit = p.getExecutionTime()
+    val timeLimit = p.getExecutionTime
     val stopCond = new TimeExpired(timeLimit)
     evaluate(p, stopCond)
   }
@@ -62,8 +61,9 @@ class GAAlgorithm(
     var child1 = NaivePfsEvaluatedSolution(p)
     var child2 = NaivePfsEvaluatedSolution(p)
     
+    @tailrec
     def loop(pop: Array[PfsEvaluatedSolution], stats: (Double, Int, Int), mRate: Double, iter: Int): EvaluatedSolution = {
-      if(stop.isNotSatisfied()) {
+      if(stop.isNotSatisfied) {
           var population = pop
           var triple = stats
           var mean = triple._1
@@ -129,7 +129,7 @@ class GAAlgorithm(
     loop(Array(), (1.0, 1, 1), mutRate, 1)
   }
 
-  def initRandom(p: PfsProblem, size: Int): Array[PfsEvaluatedSolution] = {
+  private def initRandom(p: PfsProblem, size: Int): Array[PfsEvaluatedSolution] = {
     def randomGenerate(jobs: List[Int]): PfsEvaluatedSolution = {
       p.evaluate(PfsSolution(random.shuffle(jobs))).asInstanceOf[PfsEvaluatedSolution]
     }
@@ -150,8 +150,8 @@ class GAAlgorithm(
     val size = parent1.size
     val firstPoint = random.nextInt(size - 1) //[0,n-2]
     val secondPoint = firstPoint + 1 + random.nextInt(size - firstPoint) //[firstPoint+1,n]
-    val p1Remove = parent2.drop(firstPoint).take(secondPoint - firstPoint)
-    val p2Remove = parent1.drop(firstPoint).take(secondPoint - firstPoint)
+    val p1Remove = parent2.slice(firstPoint, firstPoint + secondPoint - firstPoint)
+    val p2Remove = parent1.slice(firstPoint, firstPoint + secondPoint - firstPoint)
     val p1Filtered = parent1.filterNot(p1Remove.toSet)
     val p2Filtered = parent2.filterNot(p2Remove.toSet)
     val p1Reconstructed = p1Filtered.take(firstPoint) ::: p1Remove ::: p1Filtered.drop(firstPoint)
@@ -162,23 +162,24 @@ class GAAlgorithm(
     val firstPoint = random.nextInt(parent1.size - 1) //[0,n-2]
     val secondPoint = firstPoint + 1 + random.nextInt(parent1.size - firstPoint) //[firstPoint+1,n]
     val child1Part1 = parent1.take(firstPoint)
-    val child1Part2 = parent1.drop(firstPoint).take(secondPoint - firstPoint)
+    val child1Part2 = parent1.slice(firstPoint, firstPoint + secondPoint - firstPoint)
     val child1Part3 = parent1.drop(secondPoint)
     val child2Part1 = parent2.take(firstPoint)
-    val child2Part2 = parent2.drop(firstPoint).take(secondPoint - firstPoint)
+    val child2Part2 = parent2.slice(firstPoint, firstPoint + secondPoint - firstPoint)
     val child2Part3 = parent2.drop(secondPoint)
     val mappings1 = child1Part2 zip child2Part2
     val mappings2 = child2Part2 zip child1Part2
+    @tailrec
     def applyMapping(list: List[Int], mappings: List[(Int, Int)], result: List[Int]): List[Int] = list match {
       case List() => result
-      case head :: tail => mappings.filter(y => y._1 == head).toList match {
+      case head :: tail => mappings.filter(y => y._1 == head) match {
         case List()  => applyMapping(tail, mappings, result ::: List(head))
         case m :: ms => applyMapping(m._2 :: tail, mappings, result)
       }
     }
     val child1 = applyMapping(child1Part1, mappings2, List()) ::: child2Part2 ::: applyMapping(child1Part3, mappings2, List())
     val child2 = applyMapping(child2Part1, mappings1, List()) ::: child1Part2 ::: applyMapping(child2Part3, mappings1, List())
-    (child1.toList, child2.toList)
+    (child1, child2)
   }
 
   def crossoverC1(parent1: List[Int], parent2: List[Int]): (List[Int], List[Int]) = {
@@ -194,7 +195,7 @@ class GAAlgorithm(
   def crossoverNABEL(parent1: List[Int], parent2: List[Int]): (List[Int], List[Int]) = {
     val child1 = Array.ofDim[Int](parent1.size)
     val child2 = Array.ofDim[Int](parent2.size)
-    for (i <- 0 until parent1.size) {
+    for (i <- parent1.indices) {
       child1(i) = parent1(parent2(i) - 1)
       child2(i) = parent2(parent1(i) - 1)
     }
@@ -210,11 +211,11 @@ class GAAlgorithm(
   def mutationINS(parent: List[Int]): List[Int] = {
     NeighbourhoodOperator(random).BckINS(parent)
   }
-  def calculateStatistics(sortedPopulation:Array[PfsEvaluatedSolution]):(Double,Int,Int) = {
+  private def calculateStatistics(sortedPopulation:Array[PfsEvaluatedSolution]):(Double,Int,Int) = {
     val makespans = sortedPopulation.map(_.value)
-    val mean = makespans.sum.asInstanceOf[Double] / sortedPopulation.size
-    val median = makespans.apply(sortedPopulation.size / 2 + 1)
-    val minimum = makespans.reduceLeft(_ min _)
+    val mean = makespans.sum.asInstanceOf[Double] / sortedPopulation.length
+    val median = makespans.apply(sortedPopulation.length / 2 + 1)
+    val minimum = makespans.min
     (mean,median,minimum)
   }
 }

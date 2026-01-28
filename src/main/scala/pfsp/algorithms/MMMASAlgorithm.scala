@@ -1,13 +1,11 @@
 package pfsp.algorithms
 
-import it.polimi.hyperh.problem.Problem
-import it.polimi.hyperh.solution.Solution
-import it.polimi.hyperh.solution.EvaluatedSolution
 import pfsp.problem.PfsProblem
 import pfsp.neighbourhood.NeighbourhoodOperator
 import pfsp.solution.PfsSolution
 import pfsp.solution.PfsEvaluatedSolution
 import it.polimi.hyperh.spark.StoppingCondition
+import scala.annotation.tailrec
 
 /**
  * @author Nemanja
@@ -23,7 +21,7 @@ extends MMASAlgorithm(p,t0,cand,seedOption) {
   def this(p: PfsProblem) {
     this(p, 0.2, 5, None)//default values
   }
-  def sumij(iJob: Int, jPos : Int) = {
+  def sumij(iJob: Int, jPos : Int): Double = {
     var sum = 0.0
     for(q <- 1 to jPos)
       sum = sum + trail(iJob, jPos)
@@ -34,6 +32,7 @@ extends MMASAlgorithm(p,t0,cand,seedOption) {
       0
     else{
       def sumTrails(list: List[Int]): Double = {
+        @tailrec
         def sum(list: List[Int], acc: Double): Double = {
           list match {
             case List() => acc
@@ -54,11 +53,11 @@ extends MMASAlgorithm(p,t0,cand,seedOption) {
     
     while(jPos <= p.numOfJobs) {
       var nextJob = -1
-      var u = random.nextDouble()
+      val u = random.nextDouble()
       if(u <= p0) {
         candidates = bestSolution.solution.toList.filterNot(job => scheduled.contains(job)).take(cand)
         var max = 0.0
-        for(i <- 0 until candidates.size) {
+        for(i <- candidates.indices) {
           val sij = sumij(candidates(i), jPos)
           if(sij > max) {
             max = sij
@@ -82,9 +81,9 @@ extends MMASAlgorithm(p,t0,cand,seedOption) {
       val seed = bestSolution.permutation
       val seedList = seed.toList
       var i = 1
-      while(i <= p.numOfJobs && stopCond.isNotSatisfied()){
+      while(i <= p.numOfJobs && stopCond.isNotSatisfied){
         var j = 1
-        while(j <= p.numOfJobs && stopCond.isNotSatisfied()) {
+        while(j <= p.numOfJobs && stopCond.isNotSatisfied) {
           if(seed(j-1) != i) {
             val remInd = seed.indexWhere( _ == i)
             val insInd = j-1
@@ -101,9 +100,9 @@ extends MMASAlgorithm(p,t0,cand,seedOption) {
     bestSolution
   }
   //overide solution passed to updatePheromones: ant best instead of global best solution
-  override def updatePheromones(antSolution: PfsEvaluatedSolution, bestSolution: PfsEvaluatedSolution) = {
+  override def updatePheromones(antSolution: PfsEvaluatedSolution, bestSolution: PfsEvaluatedSolution): Unit = {
     updateTmax(bestSolution)
-    updateTmin
+    updateTmin()
     val usedSolution = antSolution
     def deposit(iJob: Int,jPos: Int): Double = {
       if(usedSolution.permutation(jPos-1) == iJob)

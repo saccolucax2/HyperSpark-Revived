@@ -3,23 +3,30 @@ package nrp.util
 import scala.io.Source
 import nrp.solution.NrSolution
 import nrp.solution.NrEvaluatedSolution
+
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
-object NrSolutionParser{
+object NrSolutionParser {
   def apply(fileName: String): NrSolution = {
-    val path = "src/main/resources/"
-    // Load Initial solution
-    val solutionFile = path + fileName
-    val solutionCharacter = Source.fromFile(solutionFile).getLines().toArray
-    val solution = solutionCharacter.map(x => x.toInt)
-    // Initialize new solution
-    new NrSolution(solution)
+    val path = "src/main/resources/" + fileName
+    val source = Source.fromFile(path)
+    try {
+      val solution = source.getLines()
+        .map(_.trim)
+        .filter(_.nonEmpty)
+        .map(_.toInt)
+        .toArray
+      new NrSolution(solution)
+    } finally {
+      source.close()
+    }
   }
 }
 
 object NrEvaluatedSolutionParser extends RegexParsers {
   def number: Parser[Int] = """\d+""".r ^^ { _.toInt }
-  def identifier  = """[_\p{L}][_\p{L}\p{Nd}]*""".r
+  def identifier: Regex = """[_\p{L}][_\p{L}\p{Nd}]*""".r
   def row: Parser[Array[Int]] = number.+ ^^ {_.toArray}
   def solution: Parser[NrEvaluatedSolution] = identifier ~> number ~ row ^^ {
     case ms ~ r => new NrEvaluatedSolution(ms,r)
