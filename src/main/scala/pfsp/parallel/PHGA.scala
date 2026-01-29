@@ -73,7 +73,7 @@ class PHGA(
     }
     
     val stop = stopCond.asInstanceOf[TimeExpired].initialiseLimit()
-    while (stop.isNotSatisfied()) {
+    while (stop.isNotSatisfied) {
       //DIVIDE POPULATION IN numOfSplits SUBPOPULATIONS
           //we have subPopSize value calculated
       val subpopulations: Array[RDD[(Int, PfsEvaluatedSolution)]] = (for(i<-0 until numOfSplits) yield populationRDD.filter(t => t._1 == i)).toArray
@@ -124,7 +124,7 @@ class PHGA(
     //function that repeats metropolis sample n times on one element at current temperature
     @tailrec
     def metropolisOneElement(el: (Int, PfsEvaluatedSolution), locBest: (Int, PfsEvaluatedSolution), runs: Int): (Int, PfsEvaluatedSolution) = {
-      if((runs < p.numOfJobs) && stopCond.isNotSatisfied()) {
+      if((runs < p.numOfJobs) && stopCond.isNotSatisfied) {
         var newSolution: List[Int] = List()
         var updateEl = el
         var localBest = locBest
@@ -159,7 +159,7 @@ class PHGA(
       else locBest
     }
     var iter = 0
-    while (iter < p.numOfJobs && stopCond.isNotSatisfied()) {
+    while (iter < p.numOfJobs && stopCond.isNotSatisfied) {
       evOldPopulation = evOldPopulation.map{ el =>
         val updateEl = metropolisOneElement(el, el, 0)
         temperature = coolingRate*temperature
@@ -178,7 +178,7 @@ object PHGA {
     val problem = PfsProblem.fromResources("inst_ta"+instance+".txt")
     val n = problem.numOfJobs
     val m = problem.numOfMachines
-    val totalTime = problem.getExecutionTime()
+    val totalTime = problem.getExecutionTime
     val stopCond = new TimeExpired(totalTime)
     val bestSolution = PfsEvaluatedSolution.fromResources("sol_ta"+instance+".txt")
     val algorithm = new PHGA(problem)

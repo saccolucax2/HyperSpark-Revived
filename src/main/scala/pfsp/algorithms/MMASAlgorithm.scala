@@ -132,7 +132,7 @@ extends ACOAlgorithm(p, t0, seedOption) with Algorithm {
     }
     else {
       while(stopCond.isNotSatisfied) {
-        val moves = NeighbourhoodOperator(random).generateNRandomNeighbourhoodMoves(p.numOfJobs, tsAlgorithm.getNumOfRandomMoves())
+        val moves = NeighbourhoodOperator(random).generateNRandomNeighbourhoodMoves(p.numOfJobs, tsAlgorithm.getNumOfRandomMoves)
         bestSolution = tsAlgorithm.firstImprovement(p, bestSolution, moves, stopCond)._1 
       }
       bestSolution
