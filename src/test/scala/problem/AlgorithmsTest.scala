@@ -30,7 +30,7 @@ class AlgorithmsTest extends Assertions {
     println("numOfMachines: "+problem.numOfMachines)
    //ConsolePrinter.print(problem.jobTimesMatrix)
     
-    val timeLimit =  problem.getExecutionTime()
+    val timeLimit =  problem.getExecutionTime
     val stopCond = new TimeExpired(timeLimit)
     println("Time limit: "+timeLimit/1000.0+"s")
     
