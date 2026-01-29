@@ -5,9 +5,11 @@ import it.polimi.hyperh.spark.FrameworkConf
 import it.polimi.hyperh.spark.TimeExpired
 import pfsp.problem.PfsProblem
 import pfsp.algorithms.GAAlgorithm
+import java.io.{File, FileWriter, BufferedWriter}
 
 /**
  * @author Nemanja
+ * Modified by Luca for Edge Persistence
  */
 object LocalApp {
   def main(args: Array[String]): Unit = {
@@ -31,5 +33,21 @@ object LocalApp {
 
     val solution = Framework.run(conf)
     println(solution)
+    try {
+      val outputDir = new File("/app/data")
+      if (!outputDir.exists()) {
+        outputDir.mkdirs()
+      }
+      val outputPath = "/app/data/results.txt"
+      val file = new File(outputPath)
+      val bw = new BufferedWriter(new FileWriter(file, true))
+      val timestamp = java.time.LocalDateTime.now().toString
+      bw.write(s"[$timestamp] Solution found: " + solution.toString + "\n")
+      bw.close()
+      println(s"--- [EDGE PERSISTENCE] Result saved to $outputPath ---")
+    } catch {
+      case e: Exception =>
+        println(s"--- [EDGE ERROR] Could not save to file: ${e.getMessage} ---")
+    }
   }
 }

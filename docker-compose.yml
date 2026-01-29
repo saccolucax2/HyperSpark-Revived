@@ -1,5 +1,5 @@
 services:
-  # --- NODO EDGE 1 ---
+  # --- EDGE NODE 1 (Sensor) ---
   edge-node-1:
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: hyperspark-edge-1
@@ -10,13 +10,13 @@ services:
           memory: 800M
     environment:
       - NODE_ID=Edge1
-      # Forziamo Java a usare 512MB di Heap precisi
+      # Java must use an heap of 512MB
       - _JAVA_OPTIONS=-Xmx512m -Xms512m
     restart: on-failure
     volumes:
-      - ./edge_results:/app
+      - ./edge_results:/app/data
 
-  # --- NODO EDGE 2 ---
+  # --- EDGE NODE 2 (Sensor) ---
   edge-node-2:
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: hyperspark-edge-2
@@ -30,9 +30,9 @@ services:
       - _JAVA_OPTIONS=-Xmx512m -Xms512m
     restart: on-failure
     volumes:
-      - ./edge_results:/app
+      - ./edge_results:/app/data
 
-  # --- NODO EDGE 3 (Gateway) ---
+  # --- EDGE NODE 3 (Gateway) ---
   edge-node-3:
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: hyperspark-edge-3
@@ -46,4 +46,4 @@ services:
       - _JAVA_OPTIONS=-Xmx800m -Xms800m
     restart: on-failure
     volumes:
-      - ./edge_results:/app
+      - ./edge_results:/app/data
