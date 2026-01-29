@@ -24,7 +24,7 @@ extends Experiment(instance, parallelism) {
       case _ => throw new RuntimeException("Invalid algorithm name")
     }
     val numOfAlgorithms = parallelism
-    val totalTime = problem.getExecutionTime()
+    val totalTime = problem.getExecutionTime
     val numOfIterations = 10
     val iterTimeLimit = totalTime / numOfIterations
     val stopCond = new TimeExpired(iterTimeLimit)
@@ -40,7 +40,7 @@ extends Experiment(instance, parallelism) {
     val logname = logStartTime.toString()
     logger.printInfo("Start time\t\t"+logStartTime+"\n")
     logger.setFormat(List("instance","n","m","algorithmName","parallelism","totalTime(s)","makespan","best","rpd","mode"))
-    val format = logger.getFormatString()
+    val format = logger.getFormatString
     logger.printInfo(format)
     val conf = new FrameworkConf()
       .setProblem(problem)

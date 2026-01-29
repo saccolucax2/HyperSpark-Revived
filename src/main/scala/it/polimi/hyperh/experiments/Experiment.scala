@@ -38,22 +38,22 @@ abstract class Experiment(instance: Int, parallelism: Int) {
   }
   def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false): String = {
     def getMode = {
-      val usesTheSeed: Boolean = conf.getSeedingStrategy().usesTheSeed()
-      val numOfIterations: Int = conf.getNumberOfIterations()
+      val usesTheSeed: Boolean = conf.getSeedingStrategy.usesTheSeed()
+      val numOfIterations: Int = conf.getNumberOfIterations
       if (usesTheSeed && numOfIterations > 1)
         "cooperative"
       else "parallel"
     }
     val mode = getMode
     var resString = ""
-    val problem = conf.getProblem().asInstanceOf[PfsProblem]
+    val problem = conf.getProblem.asInstanceOf[PfsProblem]
     var bestSolution = NaivePfsEvaluatedSolution(problem)
     val n = problem.numOfJobs
     val m = problem.numOfMachines
-    val algName = conf.getAlgorithms().apply(0).name //take first alg name
-    val parallelism = conf.getAlgorithms().length
-    val iterTimeLimit = conf.getStoppingCondition().asInstanceOf[TimeExpired].getLimit()
-    val totalTime = iterTimeLimit * conf.getNumberOfIterations()
+    val algName = conf.getAlgorithms.apply(0).name //take first alg name
+    val parallelism = conf.getAlgorithms.length
+    val iterTimeLimit = conf.getStoppingCondition.asInstanceOf[TimeExpired].getLimit
+    val totalTime = iterTimeLimit * conf.getNumberOfIterations
     val solutions = Framework.multipleRuns(conf, runs)
     if (solutionPresent) {
       bestSolution = PfsEvaluatedSolution.fromResources(filename("sol_ta", i, ".txt"))

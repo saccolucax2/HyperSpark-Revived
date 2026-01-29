@@ -39,13 +39,13 @@ class LocalTesterApp {
     val logname = CurrentTime()
     logger.printInfo("Start time\t\t"+logname+"\n")
     logger.setFormat(List("instance","n","m","algorithmName","parallelism","totalTime(s)","makespan","best","rpd","mode"))
-    val format = logger.getFormatString()
+    val format = logger.getFormatString
     logger.printInfo(format)
     FileManager.write("./output/"+logname+".txt", format)
     var results: Array[String] = Array(format)
     for (i <- 1 to 120) {
       val problem = PfsProblem.fromResources(filename("inst_ta", i, ".txt"))
-      val totalTime = problem.getExecutionTime()
+      val totalTime = problem.getExecutionTime
       val numOfIterations = 1
       val iterTimeLimit = totalTime / numOfIterations
       val stopCond = new TimeExpired(iterTimeLimit)
@@ -68,22 +68,22 @@ class LocalTesterApp {
   }
   def testInstance(i: Int, runs: Int, conf: FrameworkConf, solutionPresent: Boolean = false): String = {
     def getMode = {
-      val usesTheSeed: Boolean = conf.getSeedingStrategy().usesTheSeed()
-      val numOfIterations: Int = conf.getNumberOfIterations()
+      val usesTheSeed: Boolean = conf.getSeedingStrategy.usesTheSeed()
+      val numOfIterations: Int = conf.getNumberOfIterations
       if (usesTheSeed && numOfIterations > 1)
         "cooperative"
       else "parallel"
     }
     val mode = getMode
     var resString = ""
-    val problem = conf.getProblem().asInstanceOf[PfsProblem]
+    val problem = conf.getProblem.asInstanceOf[PfsProblem]
     var bestSolution = NaivePfsEvaluatedSolution(problem)
     val n = problem.numOfJobs
     val m = problem.numOfMachines
-    val algName = conf.getAlgorithms().apply(0).name //take first alg name
-    val parallelism = conf.getAlgorithms().size
-    val iterTimeLimit = conf.getStoppingCondition().asInstanceOf[TimeExpired].getLimit()
-    val totalTime = iterTimeLimit * conf.getNumberOfIterations()
+    val algName = conf.getAlgorithms.apply(0).name //take first alg name
+    val parallelism = conf.getAlgorithms.length
+    val iterTimeLimit = conf.getStoppingCondition.asInstanceOf[TimeExpired].getLimit
+    val totalTime = iterTimeLimit * conf.getNumberOfIterations
     //var rpds: List[Double] = List()
     val solutions = Framework.multipleRuns(conf, runs)
     if (solutionPresent) {

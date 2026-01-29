@@ -17,7 +17,7 @@ extends Experiment() {
     val problem = PfsProblem.fromResources(filename("inst_ta", instance, ".txt"))
     val makeAlgo = () => new IGAlgorithm()
     val numOfAlgorithms = 20
-    val totalTime = problem.getExecutionTime()*20
+    val totalTime = problem.getExecutionTime*20
     val numOfIterations = 10
     val iterTimeLimit = totalTime / numOfIterations
     val stopCond = new TimeExpired(iterTimeLimit)
@@ -27,7 +27,7 @@ extends Experiment() {
     val logname = logStartTime.toString()
     logger.printInfo("Start time\t\t"+logStartTime+"\n")
     logger.setFormat(List("instance","n","m","algorithmName","parallelism","totalTime(s)","makespan","best","rpd","mode"))
-    val format = logger.getFormatString()
+    val format = logger.getFormatString
     logger.printInfo(format)
     val conf = new FrameworkConf()
       .setProblem(problem)

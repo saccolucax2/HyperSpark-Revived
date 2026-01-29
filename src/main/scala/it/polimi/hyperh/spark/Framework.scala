@@ -24,23 +24,23 @@ object Framework {
   def run(conf: FrameworkConf): EvaluatedSolution = {
     setConf(conf)
     //problem specific settings
-    val problem = conf.getProblem()
-    val algorithms = conf.getAlgorithms()
+    val problem = conf.getProblem
+    val algorithms = conf.getAlgorithms
     val numOfTasks = algorithms.length
-    val seeds = conf.getInitialSeeds()
-    val stopCond = conf.getStoppingCondition()
-    val iterations = conf.getNumberOfIterations()
+    val seeds = conf.getInitialSeeds
+    val stopCond = conf.getStoppingCondition
+    val iterations = conf.getNumberOfIterations
     val dataset = DistributedDataset(numOfTasks, algorithms, seeds, stopCond)
     //spark specific settings
-    val sparkConf = new SparkConf().setAll(conf.getProperties())
+    val sparkConf = new SparkConf().setAll(conf.getProperties)
     if(notStarted){//allow only one instance of SparkContext to run
       sparkContext = Some(new SparkContext(sparkConf))
       notStarted = false
     }
     val sc = getSparkContext
     val rdd = sc.parallelize(dataset, numOfTasks).cache
-    mrHandler = conf.getMapReduceHandler()
-    seedingStrategy = conf.getSeedingStrategy()
+    mrHandler = conf.getMapReduceHandler
+    seedingStrategy = conf.getSeedingStrategy
     //run the hyperLoop
     val solution = hyperLoop(problem, rdd, iterations, 1)
     solution
@@ -48,23 +48,23 @@ object Framework {
   def multipleRuns(conf: FrameworkConf, runs: Int): Array[EvaluatedSolution] = {
     setConf(conf)
     //problem specific settings
-    val problem = conf.getProblem()
-    val algorithms = conf.getAlgorithms()
+    val problem = conf.getProblem
+    val algorithms = conf.getAlgorithms
     val numOfTasks = algorithms.length
-    val seeds = conf.getInitialSeeds()
-    val stopCond = conf.getStoppingCondition()
-    val iterations = conf.getNumberOfIterations()//coop. iterations to be performed in one run, default: 1
+    val seeds = conf.getInitialSeeds
+    val stopCond = conf.getStoppingCondition
+    val iterations = conf.getNumberOfIterations//coop. iterations to be performed in one run, default: 1
     val dataset = DistributedDataset(numOfTasks, algorithms, seeds, stopCond)
     //spark specific settings
-    val sparkConf = new SparkConf().setAll(conf.getProperties())
+    val sparkConf = new SparkConf().setAll(conf.getProperties)
     if(notStarted){//allow only one instance of SparkContext to run
       sparkContext = Some(new SparkContext(sparkConf))
       notStarted = false
     }
     val sc = getSparkContext
     val rdd = sc.parallelize(dataset, numOfTasks).cache
-    mrHandler = conf.getMapReduceHandler()
-    seedingStrategy = conf.getSeedingStrategy()
+    mrHandler = conf.getMapReduceHandler
+    seedingStrategy = conf.getSeedingStrategy
     //run the hyperLoop
     var solutions: Array[EvaluatedSolution] = Array()
      for(runNo <- 1 to runs) {
@@ -108,7 +108,7 @@ object Framework {
     iterloop(rdd, 1)
   }
   private def updateRDD(rdd: RDD[DistributedDatum], seed: EvaluatedSolution): RDD[DistributedDatum] = {
-    val numOfTasks = getConf.getAlgorithms().length
+    val numOfTasks = getConf.getAlgorithms.length
     val seeds = seedingStrategy.divide(Some(seed), numOfTasks)
     if(seeds.length < numOfTasks)
       throw new RuntimeException("Seeding strategy did not produce the correct number of seeds.")

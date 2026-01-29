@@ -1,4 +1,5 @@
 package it.polimi.hyperh
+
 import scala.util.Random
 import it.polimi.hyperh.algorithms.NEHAlgorithm
 import it.polimi.hyperh.solution.EvaluatedSolution

@@ -16,7 +16,7 @@ class Experiment1(instance: Int, parallelism: Int) extends Experiment(instance, 
     val problem = PfsProblem.fromResources(filename("inst_ta", instance, ".txt"))
     val algorithm = new HGAAlgorithm(problem)
     val numOfAlgorithms = parallelism
-    val totalTime = problem.getExecutionTime()
+    val totalTime = problem.getExecutionTime
     val numOfIterations = 1
     val iterTimeLimit = totalTime / numOfIterations
     val stopCond = new TimeExpired(iterTimeLimit)
@@ -25,7 +25,7 @@ class Experiment1(instance: Int, parallelism: Int) extends Experiment(instance, 
     val logname = logStartTime.toString()
     logger.printInfo("Start time\t\t"+logStartTime+"\n")
     logger.setFormat(List("instance","n","m","algorithmName","parallelism","totalTime(s)","makespan","best","rpd","mode"))
-    val format = logger.getFormatString()
+    val format = logger.getFormatString
     logger.printInfo(format)
     val conf = new FrameworkConf()
       .setProblem(problem)

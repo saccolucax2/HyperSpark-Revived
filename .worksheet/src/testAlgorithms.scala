@@ -19,6 +19,5 @@ object testAlgorithms {;import org.scalaide.worksheet.runtime.library.WorksheetS
   val nehEvSolution = NEHAlgorithm.evaluate(problem);System.out.println("""nehEvSolution  : it.polimi.hyperh.solution.EvaluatedSolution = """ + $show(nehEvSolution ));$skip(102); 
   //Use IGAlgorithm to evaluate inst_ta001
   val igEvSolution = IGAlgorithm.evaluate(problem, 2, 0.2);System.out.println("""igEvSolution  : it.polimi.hyperh.solution.EvaluatedSolution = """ + $show(igEvSolution ))}
- 
 
 }
