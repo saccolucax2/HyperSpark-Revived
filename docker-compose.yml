@@ -1,49 +1,90 @@
 services:
-  # --- EDGE NODE 1 (Sensor) ---
-  edge-node-1:
+  # ==========================================
+  # TIER 1: HIGH-END GATEWAY (Local Transaction Manager)
+  # Reference: Al-Qerem et al. [LTM Node] (NVIDIA Jetson Nano)
+  # Simulated Hardware: Quad-core A57, 4GB RAM
+  # ==========================================
+  edge-gateway:
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
-    container_name: hyperspark-edge-1
+    container_name: jetson-nano-gateway
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 800M
+          cpus: '2.0'
+          memory: 3G
     environment:
-      - NODE_ID=Edge1
-      # Java must use an heap of 512MB
-      - _JAVA_OPTIONS=-Xmx512m -Xms512m
-    restart: on-failure
+      - NODE_ID=Jetson_Nano
+      - _JAVA_OPTIONS=-Xmx2g
     volumes:
       - ./edge_results:/app/data
-
-  # --- EDGE NODE 2 (Sensor) ---
-  edge-node-2:
-    image: ghcr.io/saccolucax2/hyperspark-revived:latest
-    container_name: hyperspark-edge-2
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 800M
-    environment:
-      - NODE_ID=Edge2
-      - _JAVA_OPTIONS=-Xmx512m -Xms512m
     restart: on-failure
-    volumes:
-      - ./edge_results:/app/data
 
-  # --- EDGE NODE 3 (Gateway) ---
-  edge-node-3:
+  # ==========================================
+  # TIER 2: MID-END CONTROLLERS (Processing Nodes)
+  # Reference: EdgeBench (Azure IoT Edge Profile)
+  # Simulated Hardware: Raspberry Pi 4 (4GB Model) / Odroid N2+
+  # ==========================================
+  mid-node-1:
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
-    container_name: hyperspark-edge-3
+    container_name: rpi4-node-1
     deploy:
       resources:
         limits:
           cpus: '1.0'
-          memory: 1G
+          memory: 2G
     environment:
-      - NODE_ID=Edge3
-      - _JAVA_OPTIONS=-Xmx800m -Xms800m
-    restart: on-failure
+      - NODE_ID=RPi4_Node1
+      - _JAVA_OPTIONS=-Xmx1400m
     volumes:
       - ./edge_results:/app/data
+    restart: on-failure
+
+  mid-node-2:
+    image: ghcr.io/saccolucax2/hyperspark-revived:latest
+    container_name: rpi4-node-2
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    environment:
+      - NODE_ID=RPi4_Node2
+      - _JAVA_OPTIONS=-Xmx1400m
+    volumes:
+      - ./edge_results:/app/data
+    restart: on-failure
+
+  # ==========================================
+  # TIER 3: LOW-END SENSORS (Constrained Devices)
+  # Reference: EdgeBench (Raspberry Pi 3 Model B Profile)
+  # Simulated Hardware: Raspberry Pi 3B+
+  # ==========================================
+  low-node-1:
+    image: ghcr.io/saccolucax2/hyperspark-revived:latest
+    container_name: rpi3-node-1
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    environment:
+      - NODE_ID=RPi3_Node1
+      - _JAVA_OPTIONS=-Xmx600m
+    volumes:
+      - ./edge_results:/app/data
+    restart: on-failure
+
+  low-node-2:
+    image: ghcr.io/saccolucax2/hyperspark-revived:latest
+    container_name: rpi3-node-2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    environment:
+      - NODE_ID=RPi3_Node2
+      - _JAVA_OPTIONS=-Xmx600m
+    volumes:
+      - ./edge_results:/app/data
+    restart: on-failure
