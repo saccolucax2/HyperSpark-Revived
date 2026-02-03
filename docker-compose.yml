@@ -17,6 +17,8 @@ services:
       - _JAVA_OPTIONS=-Xmx2g
     volumes:
       - ./edge_results:/app/data
+      - ./start.sh:/app/start.sh
+    entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
   # ==========================================
@@ -37,6 +39,8 @@ services:
       - _JAVA_OPTIONS=-Xmx1400m
     volumes:
       - ./edge_results:/app/data
+      - ./start.sh:/app/start.sh
+    entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
   mid-node-2:
@@ -52,6 +56,8 @@ services:
       - _JAVA_OPTIONS=-Xmx1400m
     volumes:
       - ./edge_results:/app/data
+      - ./start.sh:/app/start.sh
+    entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
   # ==========================================
@@ -72,6 +78,8 @@ services:
       - _JAVA_OPTIONS=-Xmx600m
     volumes:
       - ./edge_results:/app/data
+      - ./start.sh:/app/start.sh
+    entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
   low-node-2:
@@ -87,4 +95,6 @@ services:
       - _JAVA_OPTIONS=-Xmx600m
     volumes:
       - ./edge_results:/app/data
+      - ./start.sh:/app/start.sh
+    entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure

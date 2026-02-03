@@ -1,0 +1,7 @@
+[package]
+name = "floria_dashboard"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+floria = "0.0.5"
