@@ -5,6 +5,7 @@ services:
   # Simulated Hardware: Quad-core A57, 4GB RAM
   # ==========================================
   edge-gateway:
+    build: ./simulation-core
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: jetson-nano-gateway
     deploy:
@@ -16,8 +17,8 @@ services:
       - NODE_ID=Jetson_Nano
       - _JAVA_OPTIONS=-Xmx2g
     volumes:
-      - ./edge_results:/app/data
-      - ./start.sh:/app/start.sh
+      - ./data/logs:/app/data
+      - ./simulation-core/start.sh:/app/start.sh
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
@@ -27,6 +28,7 @@ services:
   # Simulated Hardware: Raspberry Pi 4 (4GB Model) / Odroid N2+
   # ==========================================
   mid-node-1:
+    build: ./simulation-core
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: rpi4-node-1
     deploy:
@@ -38,12 +40,13 @@ services:
       - NODE_ID=RPi4_Node1
       - _JAVA_OPTIONS=-Xmx1400m
     volumes:
-      - ./edge_results:/app/data
-      - ./start.sh:/app/start.sh
+      - ./data/logs:/app/data
+      - ./simulation-core/start.sh:/app/start.sh
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
   mid-node-2:
+    build: ./simulation-core
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: rpi4-node-2
     deploy:
@@ -55,8 +58,8 @@ services:
       - NODE_ID=RPi4_Node2
       - _JAVA_OPTIONS=-Xmx1400m
     volumes:
-      - ./edge_results:/app/data
-      - ./start.sh:/app/start.sh
+      - ./data/logs:/app/data
+      - ./simulation-core/start.sh:/app/start.sh
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
@@ -66,6 +69,7 @@ services:
   # Simulated Hardware: Raspberry Pi 3B+
   # ==========================================
   low-node-1:
+    build: ./simulation-core
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: rpi3-node-1
     deploy:
@@ -77,12 +81,13 @@ services:
       - NODE_ID=RPi3_Node1
       - _JAVA_OPTIONS=-Xmx600m
     volumes:
-      - ./edge_results:/app/data
-      - ./start.sh:/app/start.sh
+      - ./data/logs:/app/data
+      - ./simulation-core/start.sh:/app/start.sh
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
   low-node-2:
+    build: ./simulation-core
     image: ghcr.io/saccolucax2/hyperspark-revived:latest
     container_name: rpi3-node-2
     deploy:
@@ -94,7 +99,7 @@ services:
       - NODE_ID=RPi3_Node2
       - _JAVA_OPTIONS=-Xmx600m
     volumes:
-      - ./edge_results:/app/data
-      - ./start.sh:/app/start.sh
+      - ./data/logs:/app/data
+      - ./simulation-core/start.sh:/app/start.sh
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure

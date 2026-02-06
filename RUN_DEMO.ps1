@@ -6,7 +6,7 @@ Write-Host "STARTING DEMO HYPERSPARK..." -ForegroundColor Cyan
 # 1. STOP  AND CLEANING
 docker-compose down 2>$null
 Start-Sleep -Seconds 2
-Remove-Item -Path ".\edge_results\*.log" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path ".\data\logs\*.log" -Force -ErrorAction SilentlyContinue
 
 # 2. STARTING DOCKER
 Write-Host "Launching Containers..." -ForegroundColor Yellow
@@ -20,7 +20,7 @@ $completed = 0
 
 while ($completed -lt $nodes_count) {
     Start-Sleep -Seconds 5
-    $completed = (Get-ChildItem ".\edge_results\*.log" | Select-String "took").Count
+    $completed = (Get-ChildItem ".\data\logs\*.log" | Select-String "took").Count
     Write-Host "   State: $completed / $nodes_count finished nodes..." -NoNewline -ForegroundColor Gray
     Write-Host "`r" -NoNewline
 }
