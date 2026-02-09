@@ -34,11 +34,11 @@ object LocalApp {
     val solution = Framework.run(conf)
     println(solution)
     try {
-      val outputDir = new File("/app/data")
+      val outputDir = new File("/app/data/logs")
       if (!outputDir.exists()) {
         outputDir.mkdirs()
       }
-      val outputPath = "/app/data/results.txt"
+      val outputPath = "/app/data/logs/results.txt"
       val file = new File(outputPath)
       val bw = new BufferedWriter(new FileWriter(file, true))
       val timestamp = java.time.LocalDateTime.now().toString
