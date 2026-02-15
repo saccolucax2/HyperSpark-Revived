@@ -1,5 +1,5 @@
 #!/bin/sh
-
-echo "--- Starting: $NODE_ID ---"
-
-java -jar /app/app.jar > /app/data/"$NODE_ID".log 2>&1
+MAIN_CLASS=${MAIN_CLASS:-it.polimi.hyperh.apps.LocalApp}
+echo "--- Starting Node: $NODE_ID ---"
+echo "--- Instance: $NRP_INSTANCE ---"
+java -cp /app/app.jar $MAIN_CLASS

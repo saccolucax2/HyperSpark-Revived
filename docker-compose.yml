@@ -16,9 +16,13 @@ services:
     environment:
       - NODE_ID=Jetson_Nano
       - _JAVA_OPTIONS=-Xmx2g
+      - MAIN_CLASS=it.polimi.hyperh.apps.LocalAppNRP
+      - NRP_INSTANCE=${NRP_TARGET:-NRP1}
+      - LOG_FILE_NAME=Jetson_Nano_${NRP_TARGET:-NRP1}.log
     volumes:
-      - ./data/logs:/app/data
+      - ./data/logs:/app/logs
       - ./simulation-core/start.sh:/app/start.sh
+      - ./simulation-core/src/main/resources:/app/src/main/resources
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
@@ -39,9 +43,13 @@ services:
     environment:
       - NODE_ID=RPi4_Node1
       - _JAVA_OPTIONS=-Xmx1400m
+      - MAIN_CLASS=it.polimi.hyperh.apps.LocalAppNRP
+      - NRP_INSTANCE=${NRP_TARGET:-NRP1}
+      - LOG_FILE_NAME=RPi4_Node1_${NRP_TARGET:-NRP1}.log
     volumes:
-      - ./data/logs:/app/data
+      - ./data/logs:/app/logs
       - ./simulation-core/start.sh:/app/start.sh
+      - ./simulation-core/src/main/resources:/app/src/main/resources
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
@@ -57,9 +65,13 @@ services:
     environment:
       - NODE_ID=RPi4_Node2
       - _JAVA_OPTIONS=-Xmx1400m
+      - MAIN_CLASS=it.polimi.hyperh.apps.LocalAppNRP
+      - NRP_INSTANCE=${NRP_TARGET:-NRP1}
+      - LOG_FILE_NAME=RPi4_Node2_${NRP_TARGET:-NRP1}.log
     volumes:
-      - ./data/logs:/app/data
+      - ./data/logs:/app/logs
       - ./simulation-core/start.sh:/app/start.sh
+      - ./simulation-core/src/main/resources:/app/src/main/resources
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
@@ -80,9 +92,13 @@ services:
     environment:
       - NODE_ID=RPi3_Node1
       - _JAVA_OPTIONS=-Xmx600m
+      - MAIN_CLASS=it.polimi.hyperh.apps.LocalAppNRP
+      - NRP_INSTANCE=${NRP_TARGET:-NRP1}
+      - LOG_FILE_NAME=RPi3_Node1_${NRP_TARGET:-NRP1}.log
     volumes:
-      - ./data/logs:/app/data
+      - ./data/logs:/app/logs
       - ./simulation-core/start.sh:/app/start.sh
+      - ./simulation-core/src/main/resources:/app/src/main/resources
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
 
@@ -98,8 +114,12 @@ services:
     environment:
       - NODE_ID=RPi3_Node2
       - _JAVA_OPTIONS=-Xmx600m
+      - MAIN_CLASS=it.polimi.hyperh.apps.LocalAppNRP
+      - NRP_INSTANCE=${NRP_TARGET:-NRP1}
+      - LOG_FILE_NAME=RPi3_Node2_${NRP_TARGET:-NRP1}.log
     volumes:
-      - ./data/logs:/app/data
+      - ./data/logs:/app/logs
       - ./simulation-core/start.sh:/app/start.sh
+      - ./simulation-core/src/main/resources:/app/src/main/resources
     entrypoint: [ "/bin/sh", "/app/start.sh" ]
     restart: on-failure
