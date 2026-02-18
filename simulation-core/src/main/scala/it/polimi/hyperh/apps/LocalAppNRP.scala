@@ -14,7 +14,7 @@ object LocalAppNRP {
     val problem = NrProblem.fromResources(name = instanceName)
     val algo = new SAAlgorithm(initT = 100.0, minT = 0.01, b = 0.0000005, totalCosts = 820, boundPercentage = 0.3)
     val numOfAlgorithms = 4
-    val stopCond = new TimeExpired(60000) // 1 minuto per test
+    val stopCond = new TimeExpired(60000)
     val randomSeed = 118337975
     val conf = new FrameworkConf()
       .setRandomSeed(randomSeed)
