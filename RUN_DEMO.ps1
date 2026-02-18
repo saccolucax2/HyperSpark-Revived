@@ -20,7 +20,7 @@ $completed = 0
 
 while ($completed -lt $nodes_count) {
     Start-Sleep -Seconds 5
-    $completed = (Get-ChildItem ".\data\logs\*.log" | Select-String "took").Count
+    $completed = (Get-ChildItem ".\data\logs\*.log" | Select-String "Solution:").Count
     Write-Host "   State: $completed / $nodes_count finished nodes..." -NoNewline -ForegroundColor Gray
     Write-Host "`r" -NoNewline
 }

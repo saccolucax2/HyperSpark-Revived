@@ -21,7 +21,7 @@ fn main() -> std::io::Result<()> {
     let temp_dot_path = "topology_live.tmp";
 
     let mut nodes: Vec<NodeResult> = Vec::new();
-    let re_time = Regex::new(r"took\s+(\d+(\.\d+)?)\s*s").unwrap();
+    let re_time = Regex::new(r"(?:Duration:|took)\s*[:\s]*(\d+(\.\d+)?)").unwrap();
 
     // ========================================================
     // 2. LOG READING
