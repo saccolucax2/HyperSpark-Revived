@@ -2,6 +2,7 @@ use std::fs::{self, File};
 use std::io::{BufWriter, Read, Write};
 use regex::Regex;
 use glob::glob;
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 struct NodeResult {
@@ -14,14 +15,19 @@ fn main() -> std::io::Result<()> {
     println!("🚀 Starting HyperSpark Dashboard...");
 
     // ========================================================
-    // 1. PTH CONFIGURATION
+    // 1. PATH CONFIGURATION
     // ========================================================
     let results_path = "../data/logs/*.log";
-    let output_dot_path = "topology_live.dot";
-    let temp_dot_path = "topology_live.tmp";
+    let output_dot_path = "../data/graphs/topology_live.dot";
+    let temp_dot_path = "../data/graphs/topology_live.tmp";
+
+    // Assicuriamoci che la cartella "graphs" esista, altrimenti la creiamo
+    if let Some(parent) = Path::new(output_dot_path).parent() {
+        fs::create_dir_all(parent)?;
+    }
 
     let mut nodes: Vec<NodeResult> = Vec::new();
-    let re_time = Regex::new(r"(?:Duration:|took)\s*[:\s]*(\d+(\.\d+)?)").unwrap();
+    let re_time = Regex::new(r"(?:Duration:|Solution:)\s*[:\s]*(\d+(\.\d+)?)").unwrap();
 
     // ========================================================
     // 2. LOG READING
@@ -63,19 +69,19 @@ fn main() -> std::io::Result<()> {
     // ========================================================
     // 3. BASELINE DEFINITION
     // ========================================================
-    let gateway_time = nodes.iter()
-        .find(|n| n.is_gateway)
-        .map(|n| n.time_seconds)
-        .unwrap_or_else(|| {
-            nodes.iter().map(|n| n.time_seconds).fold(f64::INFINITY, |a, b| a.min(b))
-        });
+    let gateway_node = nodes.iter().find(|n| n.is_gateway);
 
-    println!("📊 Baseline (Gateway): {:.4}s", gateway_time);
+    let gateway_time = gateway_node.map(|n| n.time_seconds).unwrap_or_else(|| {
+        nodes.iter().map(|n| n.time_seconds).fold(f64::INFINITY, |a, b| a.min(b))
+    });
+
+    let gateway_id = gateway_node.map(|n| n.id.clone()).unwrap_or_else(|| "Gateway".to_string());
+
+    println!("📊 Baseline ({}): {:.4}s", gateway_id, gateway_time);
 
     // ========================================================
     // 4. DOT GENERATION
     // ========================================================
-
     let file = File::create(temp_dot_path)?;
     let mut writer = BufWriter::new(file);
 
@@ -87,7 +93,11 @@ fn main() -> std::io::Result<()> {
     writeln!(writer, "    label=\"HyperSpark Dashboard: Real-Time Edge Performance\";")?;
 
     for node in &nodes {
-        let degradation = ((node.time_seconds - gateway_time) / gateway_time) * 100.0;
+        let degradation = if gateway_time > 0.0 {
+            ((node.time_seconds - gateway_time) / gateway_time) * 100.0
+        } else {
+            0.0
+        };
 
         let (bgcolor, status_text, text_color) = if node.is_gateway {
             ("#DCEDC8", "BASELINE (Gateway)".to_string(), "black")
@@ -110,9 +120,10 @@ fn main() -> std::io::Result<()> {
 
         writeln!(writer, "    \"{}\" [label={}, group=main];", node.id, label_html)?;
 
+        // Usiamo l'ID dinamico del Gateway per collegare le frecce in modo esatto!
         if !node.is_gateway {
-            let multiplier = node.time_seconds / gateway_time;
-            writeln!(writer, "    \"{}\" -> \"Jetson_Nano\" [taillabel=\"{:.1}x slower\", labeldistance=3.8, labelangle=25, style=dashed];", node.id, multiplier)?;
+            let multiplier = if gateway_time > 0.0 { node.time_seconds / gateway_time } else { 1.0 };
+            writeln!(writer, "    \"{}\" -> \"{}\" [taillabel=\"{:.1}x slower\", labeldistance=3.8, labelangle=25, style=dashed];", node.id, gateway_id, multiplier)?;
         }
     }
 
@@ -123,6 +134,6 @@ fn main() -> std::io::Result<()> {
 
     fs::rename(temp_dot_path, output_dot_path)?;
 
-    println!("✅ Dashboard updated: {} ", output_dot_path);
+    println!("✅ Dashboard updated: {}", output_dot_path);
     Ok(())
 }

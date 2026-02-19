@@ -8,14 +8,29 @@ import java.io.{File, FileWriter, BufferedWriter}
 
 object LocalAppNRP {
   def main(args: Array[String]): Unit = {
-    val instanceName = sys.env.getOrElse("NRP_INSTANCE", "NRP1")
+
+    val instanceName = sys.env.getOrElse("NRP_INSTANCE", "NRP1").toUpperCase
     println(s"--- [START] Solving Instance: $instanceName ---")
+
     val t1 = System.nanoTime
     val problem = NrProblem.fromResources(name = instanceName)
-    val algo = new SAAlgorithm(initT = 100.0, minT = 0.01, b = 0.0000005, totalCosts = 820, boundPercentage = 0.3)
+
+    val (budget, coolingRate) = instanceName match {
+      case "NRP1" => (820.0,  0.0000005)
+      case "NRP2" => (4100.0, 0.00005)
+      case "NRP3" => (4100.0, 0.00005)
+      case "NRP4" => (4100.0, 0.00005)
+      case "NRP5" => (8200.0, 0.0005)
+      case _      => (1000.0, 0.00005)
+    }
+
+    println(s"--- [TUNING] Budget: $budget | Cooling Rate (b): $coolingRate ---")
+
+    val algo = new SAAlgorithm(initT = 100.0, minT = 0.01, b = coolingRate, totalCosts = budget, boundPercentage = 0.3)
     val numOfAlgorithms = 4
     val stopCond = new TimeExpired(60000)
     val randomSeed = 118337975
+
     val conf = new FrameworkConf()
       .setRandomSeed(randomSeed)
       .setDeploymentLocalNumExecutors(numOfAlgorithms)
@@ -25,18 +40,20 @@ object LocalAppNRP {
       .setNumberOfIterations(1)
       .setMapReduceHandler(new MapReduceHandlerMaximization())
       .setStoppingCondition(stopCond)
+
     val solution = Framework.run(conf)
     val duration = (System.nanoTime - t1) / 1e9d
 
-    // --- Dynamic Log Save ---
+    // --- Dynamic Log Saving ---
     try {
       val outputDir = new File("/app/logs")
       if (!outputDir.exists()) outputDir.mkdirs()
-      val logFileName = sys.env.getOrElse("LOG_FILE_NAME", "result.log")
+      val logFileName = sys.env.getOrElse("LOG_FILE_NAME", s"${instanceName}_result.log")
       val bw = new BufferedWriter(new FileWriter(new File(outputDir, logFileName), true))
       val timestamp = java.time.LocalDateTime.now().toString
       bw.write(s"[$timestamp] Instance: $instanceName | Duration: ${duration}s | Solution: $solution\n")
       bw.close()
+      println(s"--- [END] Saved to $logFileName ---")
     } catch {
       case e: Exception => println(s"Error saving log: ${e.getMessage}")
     }

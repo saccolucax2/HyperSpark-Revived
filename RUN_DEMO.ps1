@@ -1,15 +1,18 @@
-# ==========================================
-#  HYPERSPARK FULL AUTOMATION v2.0
-# ==========================================
-Write-Host "STARTING DEMO HYPERSPARK..." -ForegroundColor Cyan
+# ==============================================
+#  HYPERSPARK FULL AUTOMATION v3.0 (NRP Edition)
+# ==============================================
+$NRP_INSTANCE = if ($env:NRP_TARGET) { $env:NRP_TARGET } else { "NRP1" }
 
-# 1. STOP  AND CLEANING
+Write-Host "STARTING DEMO HYPERSPARK - Instance: $NRP_INSTANCE" -ForegroundColor Cyan
+
+# 1. STOP AND CLEANING LOGS
 docker-compose down 2>$null
 Start-Sleep -Seconds 2
 Remove-Item -Path ".\data\logs\*.log" -Force -ErrorAction SilentlyContinue
 
-# 2. STARTING DOCKER
-Write-Host "Launching Containers..." -ForegroundColor Yellow
+# 2. CONTAINER START
+Write-Host "Launching Containers for $NRP_INSTANCE..." -ForegroundColor Yellow
+$env:NRP_TARGET=$NRP_INSTANCE
 docker-compose up -d
 
 Write-Host "...Waiting process end (Active Polling)..." -ForegroundColor Cyan
@@ -27,10 +30,15 @@ while ($completed -lt $nodes_count) {
 
 Write-Host "`nTask completed for all nodes!" -ForegroundColor Green
 
-# 4. STARTING DASHBOARD
-Write-Host "Generating graph..." -ForegroundColor Yellow
-cd floria_dashboard
+# 4. EXTRACTING CSV MASTER
+Write-Host "Extracting data to CSV..." -ForegroundColor Yellow
+python pipeline/extract_to_csv.py
+
+# 5. UPLOAD DASHBOARD RUST
+Write-Host "Updating topology graph..." -ForegroundColor Yellow
+cd visualization-floria
 cargo run
 cd ..
+Set-Location -Path $PSScriptRoot
 
-Write-Host "DEMO FINISHED. Updated graph." -ForegroundColor Green
+Write-Host "RUN FINISHED! Data appended to data/experiments_results.csv" -ForegroundColor Green
