@@ -5,7 +5,7 @@ import it.polimi.hyperh.solution.EvaluatedSolution
 import it.polimi.hyperh.algorithms.Algorithm
 import it.polimi.hyperh.spark.{StoppingCondition, TimeExpired}
 import nrp.problem.NrProblem
-import nrp.solution.{NrSolution, NrEvaluatedSolution, NaiveNrEvaluatedSolution}
+import nrp.solution.{NrSolution, NrEvaluatedSolution}
 import scala.util.Random
 import scala.annotation.tailrec
 import nrp.util.Moves
@@ -19,15 +19,18 @@ class SAAlgorithm extends Algorithm {
   private var boundP: Double = 0.3
   private var bound: Double = (totalCosts * boundP).round
   val defaultTimeLimit: Int = 300000 // 5 minutes
+  var limitEnabled: Boolean = false
+  var maxAttempts: Int = 100
 
   // Secondary constructors
-  def this(initT: Double, minT: Double, b: Double, totalCosts: Double, boundPercentage: Double) {
-    this()
+  def this(initT: Double, minT: Double, b: Double, totalCosts: Double, boundPercentage: Double, isLimitEnabled: Boolean, maxAttemptsVal: Int) {    this()
     initialTemperature = initT
     minTemperature = minT
     beta = b
     boundP = boundPercentage
     bound = (totalCosts * boundPercentage).round
+    limitEnabled = isLimitEnabled
+    maxAttempts = maxAttemptsVal
   }
 
   def this(initT: Double, minT: Double, b: Double, totalCosts: Double, boundPercentage: Double,
@@ -85,34 +88,46 @@ class SAAlgorithm extends Algorithm {
     }
 
     @tailrec
-    def validMove(solution: List[Int]): List[Int] = {
-      // create new solution randomly
-      var newSolution = List[Int]() // empty list
+    def validMove(solution: List[Int], attempts: Int = 0): List[Int] = {
+      if (limitEnabled && attempts >= maxAttempts) {
+        return solution
+      }
+
+      var newSolution = List[Int]()
       var functionInt = 9999999
-      val customerIndices = solution.zipWithIndex.filter(pair => pair._1 == 1).map(pair => pair._2) // how many customers are selected?
-      if (customerIndices.length < 1) { // if there are no customers in the current solution, always add a customer
+      val customerIndices = solution.zipWithIndex.filter(pair => pair._1 == 1).map(pair => pair._2)
+
+      if (customerIndices.length < 1) {
         newSolution = Moves(random).addCustomer(solution)
       } else {
-        functionInt = Random.nextInt(List(1, 2, 3, 4, 5).length) // produces random number 0, 1, 2, 3, or 4
-        if ((functionInt == 0) || (functionInt == 1)) newSolution = Moves(random).addCustomer(solution) // add and swap are more likely than remove
+        functionInt = Random.nextInt(5) // 0, 1, 2, 3, or 4
+        if ((functionInt == 0) || (functionInt == 1)) newSolution = Moves(random).addCustomer(solution)
         if ((functionInt == 2) || (functionInt == 3)) newSolution = Moves(random).swapCustomers(solution)
         if (functionInt == 4) newSolution = Moves(random).removeCustomer(solution)
       }
+
       // Check new solution
       if (checkConstraint(newSolution)) {
-        newSolution // return the new solution
-      } else validMove(solution) // create new solution if constraint is not satisfied
+        newSolution
+      } else {
+        validMove(solution, attempts + 1)
+      }
     }
 
     def acceptanceProbability(benefit: Double, temperature: Double): Double = scala.math.exp(benefit / temperature)
 
-    var evOldSolution = NaiveNrEvaluatedSolution(p) // purely because it has to be an instance of NrEvaluatedSolution
     val stop = stopCond.asInstanceOf[TimeExpired].initialiseLimit()
     val firstSolution = initialSolution(p)
 
     @tailrec
-    def loop(currentSol: NrEvaluatedSolution, currentTemp: Double): NrEvaluatedSolution = {
+    def loop(currentSol: NrEvaluatedSolution, currentTemp: Double, iter: Int = 0): NrEvaluatedSolution = {
+
+      if (iter % 10000 == 0) {
+        println(s"[SA-HEARTBEAT] Iter: $iter | Temp: $currentTemp | Best Fitness: ${currentSol.value}")
+      }
+
       if (currentTemp <= minTemperature || !stop.isNotSatisfied) {
+        println(s"[SA-END] Algoritmo terminato. Temp finale: $currentTemp")
         currentSol
       } else {
         val newSolution = validMove(currentSol.solution.toList)
@@ -126,9 +141,10 @@ class SAAlgorithm extends Algorithm {
           currentSol
         }
         val nextTemp = currentTemp / (1 + beta * currentTemp)
-        loop(nextSol, nextTemp)
+        loop(nextSol, nextTemp, iter + 1)
       }
     }
+
     loop(firstSolution, initialTemperature)
   }
 }

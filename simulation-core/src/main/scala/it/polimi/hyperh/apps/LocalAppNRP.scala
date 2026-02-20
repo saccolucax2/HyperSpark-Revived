@@ -15,19 +15,18 @@ object LocalAppNRP {
     val t1 = System.nanoTime
     val problem = NrProblem.fromResources(name = instanceName)
 
-    val (budget, coolingRate) = instanceName match {
-      case "NRP1" => (820.0,  0.0000005)
-      case "NRP2" => (4100.0, 0.00005)
-      case "NRP3" => (4100.0, 0.00005)
-      case "NRP4" => (4100.0, 0.00005)
-      case "NRP5" => (8200.0, 0.0005)
-      case _      => (1000.0, 0.00005)
+    val (budget, coolingRate, numOfAlgorithms, limitEnabled, maxAttempts) = instanceName match {
+      case "NRP1" => (820.0,  0.0000005, 4, false, 0)
+      case "NRP2" => (4100.0, 0.00005,   4, false, 0)
+      case "NRP3" => (4100.0, 0.00005,   4, false, 0)
+      case "NRP4" => (4100.0, 0.0005,    2, true,  100)
+      case "NRP5" => (1200.0, 0.00005,   4, false, 0)
+      case _      => (1000.0, 0.00005,   2, false, 0)
     }
 
-    println(s"--- [TUNING] Budget: $budget | Cooling Rate (b): $coolingRate ---")
+    println(s"--- [TUNING] Budget: $budget | Cooling Rate: $coolingRate | Workers: $numOfAlgorithms | Limit Enabled: $limitEnabled ---")
 
-    val algo = new SAAlgorithm(initT = 100.0, minT = 0.01, b = coolingRate, totalCosts = budget, boundPercentage = 0.3)
-    val numOfAlgorithms = 4
+    val algo = new SAAlgorithm(initT = 100.0, minT = 0.01, b = coolingRate, totalCosts = budget, boundPercentage = 0.3, isLimitEnabled = limitEnabled, maxAttemptsVal = maxAttempts)
     val stopCond = new TimeExpired(60000)
     val randomSeed = 118337975
 

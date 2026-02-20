@@ -24,7 +24,6 @@ extends Experiment() {
     val strategy = new SameSeeds()
     
     val logStartTime = CurrentTime()
-    val logname = logStartTime.toString()
     logger.printInfo("Start time\t\t"+logStartTime+"\n")
     logger.setFormat(List("instance","n","m","algorithmName","parallelism","totalTime(s)","makespan","best","rpd","mode"))
     val format = logger.getFormatString

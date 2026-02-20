@@ -1,5 +1,5 @@
-$runs_per_instance = 3
-$instances = @("NRP1", "NRP2", "NRP3", "NRP4", "NRP5")
+$runs_per_instance = 2
+$instances = @("NRP5")
 
 Set-Location -Path $PSScriptRoot
 
@@ -9,6 +9,8 @@ foreach ($inst in $instances) {
         Write-Host "--- Esecution $i of $runs_per_instance ---" -ForegroundColor Cyan
         $env:NRP_TARGET=$inst
         & "$PSScriptRoot\RUN_DEMO.ps1"
+        Write-Host "Cooling timeout (60 seconds)..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 60
     }
 }
 

@@ -45,13 +45,13 @@ def generate_reports():
             groups = [group['Execution_Time'].values for name, group in subset.groupby('Tier')]
             if len(groups) == 3 and all(len(g) > 1 for g in groups):
                 f_val, p_val = stats.f_oneway(*groups)
-                print(f"   ➤ Test ANOVA for {inst}: p-value = {p_val:.4e}")
+                print(f"Test ANOVA for {inst}: p-value = {p_val:.4e}")
                 if p_val < 0.05:
-                    print("     (Differenza statisticamente significativa!)\n")
+                    print("(statistical relevant difference)\n")
                 else:
-                    print("     (Servono più run per validare la statistica)\n")
+                    print("(irrilevant statistic data, more run necessary)\n")
             else:
-                print(f"   ➤ Salto ANOVA per {inst} (servono almeno 2 run per ogni Tier)\n")
+                print(f"Skip Anova for {inst} (need 2 run minimum for test)\n")
 
     # 2. SCALABILITY GRAPH
     if len(instances) > 1:

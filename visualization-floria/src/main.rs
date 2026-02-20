@@ -3,6 +3,7 @@ use std::io::{BufWriter, Read, Write};
 use regex::Regex;
 use glob::glob;
 use std::path::Path;
+use std::env;
 
 #[derive(Debug, Clone)]
 struct NodeResult {
@@ -12,17 +13,18 @@ struct NodeResult {
 }
 
 fn main() -> std::io::Result<()> {
-    println!("🚀 Starting HyperSpark Dashboard...");
+    // Leggiamo la variabile d'ambiente (es. "NRP1"). Se non c'è, usiamo "live" come default.
+    let nrp_target = env::var("NRP_TARGET").unwrap_or_else(|_| "live".to_string());
+    println!("🚀 Starting HyperSpark Dashboard for target: {}...", nrp_target);
 
     // ========================================================
-    // 1. PATH CONFIGURATION
+    // 1. DYNAMIC PATH CONFIGURATION
     // ========================================================
     let results_path = "../data/logs/*.log";
-    let output_dot_path = "../data/graphs/topology_live.dot";
-    let temp_dot_path = "../data/graphs/topology_live.tmp";
+    let output_dot_path = format!("../data/graphs/topology_{}.dot", nrp_target);
+    let temp_dot_path = format!("../data/graphs/topology_{}.tmp", nrp_target);
 
-    // Assicuriamoci che la cartella "graphs" esista, altrimenti la creiamo
-    if let Some(parent) = Path::new(output_dot_path).parent() {
+    if let Some(parent) = Path::new(&output_dot_path).parent() {
         fs::create_dir_all(parent)?;
     }
 
@@ -43,7 +45,8 @@ fn main() -> std::io::Result<()> {
 
                 if let Ok(mut file) = File::open(&path) {
                     if file.read_to_string(&mut content).is_ok() {
-                        if let Some(caps) = re_time.captures(&content) {
+                        // FIX CRITICO: usiamo captures_iter().last() per prendere l'ultima riga del log!
+                        if let Some(caps) = re_time.captures_iter(&content).last() {
                             let seconds: f64 = caps[1].parse().unwrap_or(0.0);
                             let is_gateway = filename.to_lowercase().contains("jetson") ||
                                 filename.to_lowercase().contains("gateway");
@@ -82,7 +85,7 @@ fn main() -> std::io::Result<()> {
     // ========================================================
     // 4. DOT GENERATION
     // ========================================================
-    let file = File::create(temp_dot_path)?;
+    let file = File::create(&temp_dot_path)?;
     let mut writer = BufWriter::new(file);
 
     writeln!(writer, "digraph HyperSparkTopology {{")?;
@@ -90,7 +93,7 @@ fn main() -> std::io::Result<()> {
     writeln!(writer, "    node [shape=none, fontname=\"Arial\"];")?;
     writeln!(writer, "    edge [fontname=\"Arial\", penwidth=1.2, color=\"#888888\"];")?;
     writeln!(writer, "    labelloc=\"t\";")?;
-    writeln!(writer, "    label=\"HyperSpark Dashboard: Real-Time Edge Performance\";")?;
+    writeln!(writer, "    label=\"HyperSpark Dashboard: Real-Time Edge Performance ({})\";", nrp_target)?; // Aggiunto il nome nel titolo
 
     for node in &nodes {
         let degradation = if gateway_time > 0.0 {
@@ -120,7 +123,6 @@ fn main() -> std::io::Result<()> {
 
         writeln!(writer, "    \"{}\" [label={}, group=main];", node.id, label_html)?;
 
-        // Usiamo l'ID dinamico del Gateway per collegare le frecce in modo esatto!
         if !node.is_gateway {
             let multiplier = if gateway_time > 0.0 { node.time_seconds / gateway_time } else { 1.0 };
             writeln!(writer, "    \"{}\" -> \"{}\" [taillabel=\"{:.1}x slower\", labeldistance=3.8, labelangle=25, style=dashed];", node.id, gateway_id, multiplier)?;
@@ -132,7 +134,7 @@ fn main() -> std::io::Result<()> {
     writer.flush()?;
     drop(writer);
 
-    fs::rename(temp_dot_path, output_dot_path)?;
+    fs::rename(&temp_dot_path, &output_dot_path)?;
 
     println!("✅ Dashboard updated: {}", output_dot_path);
     Ok(())

@@ -1,7 +1,6 @@
 package nrp.solution
 
 import it.polimi.hyperh.solution.EvaluatedSolution
-import nrp.problem.NrProblem
 import nrp.util.NrEvaluatedSolutionParser
 import scala.io.Source
 import java.io.InputStream
@@ -27,8 +26,4 @@ object NrEvaluatedSolution{
   }
   def apply(value: Int, solution: Array[Int]) = new NrEvaluatedSolution(value, solution)
   def apply(value: Int, solution: List[Int]) = new NrEvaluatedSolution(value, solution.toArray)
-}
-
-object NaiveNrEvaluatedSolution {
-  def apply(problem: NrProblem) = new NrEvaluatedSolution(value = 1, problem.initialSolution)
 }
