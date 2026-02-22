@@ -16,12 +16,12 @@ object LocalAppNRP {
     val problem = NrProblem.fromResources(name = instanceName)
 
     val (budget, coolingRate, numOfAlgorithms, limitEnabled, maxAttempts) = instanceName match {
-      case "NRP1" => (820.0,  0.0000005, 4, false, 0)
-      case "NRP2" => (4100.0, 0.00005,   4, false, 0)
-      case "NRP3" => (4100.0, 0.00005,   4, false, 0)
-      case "NRP4" => (4100.0, 0.0005,    2, true,  100)
-      case "NRP5" => (1200.0, 0.00005,   4, false, 0)
-      case _      => (1000.0, 0.00005,   2, false, 0)
+      case "NRP1" => (780.0,  0.0000005, 4, false, 0)   // 90%
+      case "NRP2" => (3790.0, 0.00005,   4, false, 0)   // 75%
+      case "NRP3" => (5285.0, 0.00005,   4, false, 0)   // 60%
+      case "NRP4" => (6610.0, 0.0005,    2, true,  100) // 30%
+      case "NRP5" => (1790.0, 0.0005,    2, false, 0)   // 45%
+      case _      => (2000.0, 0.00005,   2, false, 0)
     }
 
     println(s"--- [TUNING] Budget: $budget | Cooling Rate: $coolingRate | Workers: $numOfAlgorithms | Limit Enabled: $limitEnabled ---")
