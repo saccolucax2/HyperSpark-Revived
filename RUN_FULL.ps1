@@ -9,6 +9,12 @@ if (Test-Path $csv_path) {
     Remove-Item -Path $csv_path -Force
 }
 
+$archive_base_path = "$PSScriptRoot\data\logs\benchmark_NRP"
+if (Test-Path $archive_base_path) {
+    Write-Host "Cleaning old log archives..." -ForegroundColor Red
+    Remove-Item -Path "$archive_base_path\*" -Recurse -Force
+}
+
 Write-Host "Starting GOLDEN RUN BENCHMARK!" -ForegroundColor Green
 
 foreach ($inst in $instances) {
@@ -24,6 +30,12 @@ foreach ($inst in $instances) {
 
         $env:NRP_TARGET=$inst
         & "$PSScriptRoot\RUN_DEMO.ps1"
+
+        Write-Host "Archiving logs for $inst (Run $i)..." -ForegroundColor Yellow
+        $run_archive_path = "$archive_base_path\$inst\run_$i"
+        New-Item -ItemType Directory -Force -Path $run_archive_path | Out-Null
+
+        Move-Item -Path "$PSScriptRoot\data\logs\*.log" -Destination $run_archive_path -Force
 
         Write-Host "Forcing Docker network teardown..." -ForegroundColor DarkGray
         docker-compose down -v | Out-Null
