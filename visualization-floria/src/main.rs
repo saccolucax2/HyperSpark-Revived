@@ -13,7 +13,6 @@ struct NodeResult {
 }
 
 fn main() -> std::io::Result<()> {
-    // Leggiamo la variabile d'ambiente (es. "NRP1"). Se non c'è, usiamo "live" come default.
     let nrp_target = env::var("NRP_TARGET").unwrap_or_else(|_| "live".to_string());
     println!("🚀 Starting HyperSpark Dashboard for target: {}...", nrp_target);
 
@@ -45,7 +44,6 @@ fn main() -> std::io::Result<()> {
 
                 if let Ok(mut file) = File::open(&path) {
                     if file.read_to_string(&mut content).is_ok() {
-                        // FIX CRITICO: usiamo captures_iter().last() per prendere l'ultima riga del log!
                         if let Some(caps) = re_time.captures_iter(&content).last() {
                             let seconds: f64 = caps[1].parse().unwrap_or(0.0);
                             let is_gateway = filename.to_lowercase().contains("jetson") ||
@@ -93,7 +91,7 @@ fn main() -> std::io::Result<()> {
     writeln!(writer, "    node [shape=none, fontname=\"Arial\"];")?;
     writeln!(writer, "    edge [fontname=\"Arial\", penwidth=1.2, color=\"#888888\"];")?;
     writeln!(writer, "    labelloc=\"t\";")?;
-    writeln!(writer, "    label=\"HyperSpark Dashboard: Real-Time Edge Performance ({})\";", nrp_target)?; // Aggiunto il nome nel titolo
+    writeln!(writer, "    label=\"HyperSpark Dashboard: Real-Time Edge Performance ({})\";", nrp_target)?;
 
     for node in &nodes {
         let degradation = if gateway_time > 0.0 {
