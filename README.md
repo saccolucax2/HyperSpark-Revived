@@ -1,86 +1,62 @@
 # README #
-# HyperSpark (Legacy Rescue Edition)
-
-> **⚠️ PROJECT STATUS: RESTORED & CONTAINERIZED**
-> This repository represents a functional restoration of the original "HyperSpark" thesis framework.
-> The codebase has been stabilized, dependencies fixed, and the entire environment containerized to ensure scientific reproducibility on modern machines.
-
-**HyperSpark** is a framework for running meta-heuristic algorithms on a cluster of commodity computers. The project is written in **Scala 2.11** and managed by **Apache Spark 2.4**.
-
-The current version implements algorithms for **Permutation Flowshop problems (PFSP)**, solving instances using parallel genetic algorithms.
+# HyperSpark: Edge Computing & NRP Optimization Framework 🚀
 
 ![CI Status](https://github.com/saccolucax2/HyperSpark-Revived/actions/workflows/docker-build.yml/badge.svg)
----
+*(Based on the Bachelor's Thesis in Computer Engineering: "Metaheuristic Optimization for the Next Release Problem in Heterogeneous Edge Computing Environments" by Luca Sacco)*
 
-## ⚡️ Quick Start (Docker)
-(Pre-built Docker Image)
-The most reliable way to run this project is via Docker, which isolates the legacy dependencies (Java 8, Scala 2.11) from your host machine.
-Thanks to GitHub Actions, you don't need to build the project manually. The latest Docker image is automatically built and stored in the GitHub Container Registry.
+> **⚠️ PROJECT STATUS: EXTENDED FOR EDGE BENCHMARKING & NRP**
+> This repository represents a major architectural evolution of the original "HyperSpark" framework. 
+> Originally designed for Cloud environments, the codebase has been completely refactored, containerized, and hardened to evaluate **Distributed Metaheuristics (Simulated Annealing) on heterogeneous, resource-constrained Edge Computing clusters** solving the **Next Release Problem (NRP)**.
 
-### Run Immediately
-Execute the Genetic Algorithm on a test instance (downloads the image automatically):
-```bash
-docker run --rm ghcr.io/saccolucax2/hyperspark-revived:latest
+**HyperSpark NRP** is a distributed framework written in **Scala 2.11** and managed by **Apache Spark 2.4**. It simulates and benchmarks the performance of severely constrained hardware executing NP-Hard optimization algorithms under soft real-time constraints (60 seconds).
+
+## 🔬 Scientific Benchmark Setup (3-Tier Architecture)
+
+This framework was specifically engineered to deploy MapReduce tasks across a simulated multi-tier Edge architecture using Docker and WSL2 resource limits:
+* **Tier 1 (Gateway):** Simulated NVIDIA Jetson Nano (High CPU/RAM)
+* **Tier 2 (Mid-End):** Simulated Raspberry Pi 4
+* **Tier 3 (Low-End):** Simulated Raspberry Pi 3
+
+### Key Engineering Contributions:
+* **Resolution of the Netty Deadlock Bug:** Refactored the Spark deployment configuration (`numOfAlgorithms >= 2`) to prevent Network Thread Starvation and timeout disconnects on low-power devices.
+* **The "Dynamic Escape Valve":** Modified the Simulated Annealing source code to include a dynamic breaking mechanism (`maxAttempts`), preventing *Constraint Starvation* and *Infinite Polling Traps* on hyper-constrained NRP instances.
+* **Hardware-Aware Hyperparameter Tuning:** Dynamically maps instance complexity (Topological Depth) to algorithmic constraints (Constraint Tightness Normalization) to guarantee Fault Tolerance.
+
+## ⚙️ The Automated DataOps Pipeline
+
+The project abandons manual testing in favor of a fully automated, multi-language DataOps pipeline designed for rigorous scientific validation:
+
+1. **Orchestration (PowerShell):** Manages Docker Compose lifecycle, enforces resource limits, and implements a *Watchdog Timer* for safety.
+2. **Execution (Scala/Spark):** Runs the distributed metaheuristic across the Edge cluster.
+3. **High-Speed ETL (Rust):** A custom bare-metal parser written in Rust safely extracts latencies and topological metrics from gigabytes of raw logs without triggering Host Out-Of-Memory (OOM) exceptions.
+4. **Statistical Analysis (Python):** Automatically generates Boxplots, Scatter plots (Pareto frontiers), and complete ANOVA statistical reports to mathematically prove the *Hardware Inverse Scalability* and the *Fitness Paradox*.
+
+## ⚡️ Quick Start (Automated Benchmark)
+
+### 1. Prerequisites
+* Docker Desktop & WSL2 (for Windows users)
+* Python 3.x (with `pandas`, `seaborn`, `scipy`, `matplotlib`)
+* Rust & Cargo (for the high-speed log extractor)
+
+### 2. Run the "Golden Run"
+Execute the master script to start the benchmark across all NRP instances (NRP1 to NRP5), automatically scaling the budget from 90% down to 30%:
+```powershell
+.\run_full_benchmark.ps1
 ```
+What the script does: It tears down old networks, drops OS RAM caches, deploys the 5-node cluster, runs the Spark jobs, rotates the logs into `data/logs/archive/`, triggers the Rust parser, and finally executes the Python plotting engine.
 
-**Expected Output:** You should see Spark logs followed by the scientific result (e.g., Best Solution found: ... Makespan: 3882).
+### 3. Generated Artifacts
+After the run, check the `data/graphs/` directory for:
 
-## 🛠 Manual Build (Local Environment)
-If you want to modify the code or build locally, choose one of the following methods:
-
-### Option A: Local Docker Build (Recommended)
-You only need Docker installed. Java 8 is handled inside the container.
-
-### 1. Build Image
-Compiles the code and creates the Docker image (includes Maven Build & Test phases):
-```bash
-docker build -t hyperspark-v2 .
-```
-
-### 2. Run Algorithm
-Starts a local Spark cluster and executes the Genetic Algorithm on a test instance (e.g., ta008):
-```bash
-docker run --rm hyperspark-v2
-```
-
-### Option B: Native Maven Build
-If you want to run ```mvn``` directly on your host machine, you must configure your environment with these exact versions:
-- JDK: 1.8 (Mandatory - ```eclipse-temurin:8-jre``` recommended)
-- Scala: 2.11.11
-- Apache Spark: 2.4.7 (Core)
-- Maven: 3.x
-
-### Build Commands
-```bash
-### Clean and Package (Generates the Fat Jar with all dependencies)
-mvn clean package
-
-### Direct Execution of the Jar
-java -jar target/hyperspark-1.0-SNAPSHOT-allinone.jar
-```
-
-## 🧪 Testing & Code Quality
-To ensure code stability, the project includes automated testing and coverage analysis.
-
-### Run Unit Tests
-Execute all tests using Maven:
-```bash
-mvn test
-```
-
-### Check Code Coverage (Scoverage)
-We use Scoverage to measure how much code is tested. To generate the report:
-```bash
-mvn scoverage:report
-```
-- **Local View:** Open the generated file target/site/scoverage/index.html in your browser to see the interactive graph.
-- **CI/CD:** On GitHub Actions, this report is automatically generated and available for download as an Artifact after every build.
+* `anova_statistical_report.csv`: Complete P-Value significance validation.
+* `boxplot_time_*.png` & `boxplot_fitness_*.png`: Execution metrics.
+* `scatter_tradeoff_*.png`: The Time vs. Fitness Pareto evaluation.
 
 ## 🔐 Fixed Dependencies (Gold Standard)
 During the restoration process, the following test dependencies were frozen to ensure compatibility with Scala 2.11:
-- scalatest: 2.2.6
-- scalacheck: 1.12.5
-- junit: 4.12
+- scalatest: *2.2.6*
+- scalacheck: *1.12.5*
+- junit: *4.12*
 
 ---
 # 📖 Original Documentation
@@ -136,7 +112,7 @@ The general idea is to use the "Big Calculations" paradigm for running algorithm
 - **m-MMAS**, Rajendran and Ziegler 2002 (MMMASAlgorithm)
 - **PACO**, Rajendran and Ziegler 2002 (PACOAlgorithm)
 
-### License info ###
-
-Forked from / Based on the original work by Jarno Smith (HyperSpark Legacy)
+## 📜 Credits & License
+- **Core Modernization, NRP Adaptation & Edge Pipeline**: Luca Sacco (Thesis Project - 2026)
+- **Original Legacy Framework (HyperSpark)**: Based on the original research by Ciavotta et al. (2019) and the master's thesis extension by Jarno Smit (2021).
 The tool is available for use and improvement under a dual-licensing schema envisioning an Apache 2 license as well as a GPL-V3 License. Please contact the repository owners for further clarifications.
